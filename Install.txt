@@ -1,0 +1,100 @@
+
+Requirements
+============
+
+1. Interpreter (mandatory)
+
+   EITHER: 
+
+     A recent version of GNU Octave.
+     http://www.gnu.org/software/octave
+
+     with the optim package from Octaveforge
+     http://octave.sourceforge.net.
+
+   OR 
+
+     MathWorks MATLAB
+     http://www.mathworks.co.uk/products/matlab
+
+2. Gmsh (recommended)
+
+   http://geuz.org/gmsh
+
+   While the code all operates without Gmsh installed it is not very 
+   easy to use without it for constructing and viewing meshes.
+
+3. The nlopt package (optional) 
+
+   http://ab-initio.mit.edu/wiki/index.php/NLopt
+
+4. CMake (optional)
+
+   http://www.cmake.org
+
+   CMake is used to configure, install and test the package, however, the 
+   installation can easily be done manually. See below.
+
+5. HDF5 (optional)
+
+   http://www.hdfgroup.org/HDF5/
+
+   The command line tools from the HDF5 package are required 
+   for AMELET-HDF support. On Linux these are often provided 
+   in a package called hdf5-tools.
+
+6. Mercurial (optional)
+
+   http://mercurial.selenic.com
+
+   The upstream source is mantained in a Mercurial repository.
+
+
+Quick Start On Linux
+====================
+
+1. EITHER: Use mercurial to clone the source code repository on Bitbucket:
+
+   $ hg clone ssh://hg@bitbucket.org/uoyaeg/aegmesher aegmesher-working
+
+   OR 
+
+   Download a zip file of the source code from
+
+   https://bitbucket.org/uoyaeg/aegmesher/downloads
+
+   and unzip it into a directory call eagmesher-working
+
+   $ unzip aeg-aegmesher-x12ey12ey.zip
+   $ mv aeg-aegmesher-x12ey12ey aegmesher-working
+
+2. Run tests and install:
+
+   $ mkdir aegmesher-build_linux_$(arch)
+   $ cd eagmesher-build_linux_$(arch)
+   $ cmake -D CMAKE_INSTALL_PREFIX=$HOME -D WITH_MESHER=ON -D WITH_GMSH=ON -D WITH_AMELET=ON -D WITH_CONCEPT=ON -D WITH_GVULTURE=ON ../aegmesher-working
+   $ make
+   $ make test
+
+   Specific tests can be run using:
+
+   $ ctest -R "WireBox_*" -D ExperimentalTest
+
+   To run specific tests logging full output to file (useful for debugging):
+
+   $ ctest -V -R "BLADE1_*" -D ExperimentalTest | tee output.txt
+
+3. Install the software with
+
+   $ make install
+
+   will install the m-files in CMAKE_INSTALL_PREFIX/share/octave/packages/mesh
+   which should be added to your MATLAB/Octave path.
+
+
+Manual Install
+==============
+
+At the end of step 1 above copy the sub-directory mesh from the mesh-working directory
+to somewhere and add it to your Octave/MATLAB path.
+

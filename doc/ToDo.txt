@@ -1,0 +1,409 @@
+
+Things to do
+============
+
+
+Prirotiy Items
+--------------
+
+* Add basic front page to Wiki.
+
+* Link to project from personal web sites, RG etc. 
+
+* Make sure all tests work with Octave/MATLAB on Linux/Windows.
+
+* Integrate Michael's non-uniform mesh generation algorithm.
+
+* Add more of Michael's tests.
+
+* Parallel ray/element detection algorithm in meshTriRayIntersection1/2/3 is not robust.
+  Depends mesh size - see what cost of determining epsAngle (see commnents in function
+  file) is. In particular will fail is mesh elements are small - not scale invariant.
+  Can we set more sensible tolerances by analysing the mesh.
+  E.g find minMeshSize and use to determine epsParallelRays, epsRayEnds?
+ 
+* The structured mesh format has a serious limitation - only one group can 
+  exist on each node/edge/face/volume. For the real physical objects
+  this is not too serious since only one physical object can exist on
+  each entity. However for sources, observers and other abstract objects
+  like the computational volume this is a problem. 
+
+  Can we generalise the structured mesh to cope with this efficiently?
+
+  Yes - use AMELET-HDF structured mesh format:
+  
+  % smesh - structure containing a structured mesh modelled on the AMELET-HDF format [1]:
+  %
+  %        .dimension         - integer, dimension of mesh: 1, 2 or 3.
+  %        .x()               - real(Nx) vector of mesh line coordinates in x-direction.
+  %        .y()               - real(Ny) vector of mesh line coordinates in y-direction.
+  %        .z()               - real(Nz) vector of mesh line coordinates in z-direction.
+  %        .numGroups         - integer, number of groups.
+  %        .groupNames{}      - string{numGroups}, cell array of group names.
+  %        .groupTypes()      - integer(numGroups), array of AMELET-HDF group types:
+  %
+  %                             0 - node
+  %                             1 - edge
+  %                             2 - face
+  %                             3 - volume
+  %
+  %        .groups{}          - cell array of bounding boxes of structured mesh elements for
+  %                             each group. groups{groupIdx} is a 3xn or 6xn array of structured mesh
+  %                             indices of the bounding box corners of the elements in the group. For
+  %                             node groupds only one coordinate is required (BBox is degenerate).
+  %                              
+  %                             For group type 0 (node): groups{groupIdx} is 3xnumNodesInGroup array
+  %                                                      groups{groupIdx}(coordIdx,nodeIdx)
+  %                                                      coordIdx = 1: i
+  %                                                      coordIdx = 2: j
+  %                                                      coordIdx = 3: k
+  %
+  %                             For all other group types: groups{groupIdx} is 6 x numBBoxInGroup array
+  %                                                        groups{groupIdx}(coordIdx,bboxIdx)
+  %                                                        coordIdx = 1: ilo
+  %                                                        coordIdx = 2: jlo
+  %                                                        coordIdx = 3: klo
+  %                                                        coordIdx = 4: ihi
+  %                                                        coordIdx = 5: jhi
+  %                                                        coordIdx = 6: khi  
+  %                                                        Boundng box can be single element (edge,face,cell)
+  %                                                        or multiple elements (line,surface,volume).
+  %              
+  %        .numGroupGroups    - integer, number of groups of groups.
+  %        .groupGroupNames{} - string{numGroupGroups}, cell array of group group names.
+  %        .groupGroups()     - integer(var,numGroupGroup), sparse array of group of group indices.
+  %                             groupGroup(i,j) gives the i-th index (into the groups array) of the
+  %                             j-th group of groups. Hierarchical group of groups are NOT SUPPORTED.
+
+  function [ idx ] = meshExplicitToImplicitNodeNums( nx , ny , nz , ijk , j , k );
+  
+    if( nargin == 4 )
+      i = ijk(:,1);
+      j = ijk(:,2);
+      k = ijk(:,3);
+    else
+      i = ijk;
+    end % if
+             
+    idx = i + ( j - 1 ) * nx + ( k - 1 ) * ny * nx;
+    
+  end % function
+  
+  function [ ijk , j , k ] = meshImplicitytoExplicit( nx , ny , nz , idx );
+ 
+    k = 1 + floor( idx / ny / nx );
+    j = 1 + floor( ( idx - ( k - 1 ) * ny * nx ) / nx );
+    i = idx - ( j - 1 ) * nx - ( k - 1 ) * ny * nx;  
+                
+    if( nargout == 1 )
+      ijk = [ i ; j ; k ]; 
+    else
+      ijk = i;
+    end % if
+                  
+  end % function  
+  
+  nx=5;
+  ny=6;
+  nz=3;
+  
+  for i=1:nx
+    for j=1:ny
+      for k=1:nz
+        isXY(i,j,k) = 100 * i + 10 * j + k;
+      end
+    end
+  end
+  
+  To map an isXY(i,j,k) format onto the new format
+  
+  % Flatten.
+  isXYflat = reshape( isXY , 1  , nx * ny * nz );
+  
+  % Find used elements.
+  idx = find( isXYflat )
+  
+  % Map back to indices. 
+  [ i,j,k ] = meshImplicitytoExplicit( nx , ny , nz , idx )
+
+  % Map indices:  
+                 
+  % Node group.
+  smesh.groups{groupIdx} = [ i ; j ; k ];
+
+  % X edge group
+  stencil = [ 1 ; 0 ; 0 ];  
+
+  % Y edge group
+  stencil = [ 0 ; 1 ; 0 ];  
+  
+  % Z edge group
+  stencil = [ 0 ; 0 ; 1 ];  
+  
+  % XY face group.
+  stencil = [ 1 ; 1 ; 0 ];
+
+  % YZ face group.
+  stencil = [ 0 ; 1 ; 1 ];
+  
+  % ZX face group.
+  stencil = [ 1 ; 0 ; 1 ];
+  
+  % cell volume group.
+  stencil = [ 1 ; 1 ; 1 ];  
+  
+  smesh.groups{groupIdx} = [ i ; j ; k ; i + stencil(1) ; j + stencil(2) ; k + stencil(3) ];
+ 
+  Need to consider shape of arrays.
+  
+  Will be much more memory efficient for sparsely populated grids.
+  
+  Functions that will need to be changed:
+  
+  meshMapGroups.m
+  meshSmesh2Unmesh.m
+  meshWriteLines2Gmsh.m
+  meshWriteVulture.m
+  meshAddCompVol.m
+  
+  Could also propagate down into
+  
+  meshLineMapGroup.m
+  meshSurfaceMapGroup.m
+  meshVolumeMapGroup.m
+  
+  Main issue is "voting algorithm" for casting rays in different directions for volume groups.
+  This can only be done efficiently with the isInside(i,j,k,dir) format so may need to keep
+  for the meshVolumeMapParallelRays case.
+
+  
+General
+-------
+
+* groupGroup stuff should be carried over from unstructured to structured mesh.
+
+* groupGroup stuff should always be optionally considered in all mesh operations.
+  Check all functions handle this correctly.
+
+* Identify functions which may generate duplicate elements. These can be a
+  problem depending on the usage of the output. Maybe should issue warning.
+  
+  
+Mesh Line Generation
+--------------------
+
+* Add user defined constraint points to mesh line creation function. 
+
+  How to deal with weights and Dmin/Dmax or dmin/dmax to left/right.
+
+  X = row vector etc
+  Xuser = [ X , Xweight , Dmin , Dmax , dmin , dmax ];
+
+* Constraint point determintion from unstructured mesh node statistics:
+ 
+  Only valid if unstructured mesh node density is representative of spatial variation
+  of surfaces.
+
+  For each group determine histogram of nodes coordinates in each directions
+
+  [ nn , xx ] = hist( nodex , bincentres , 1 );
+  
+  nodex -> strong peaks in nn(i) indicate probable presence of lots of x-normal elements
+           at xx(i) and that location and should therefore be a constraint point.
+
+  Could also be used to alter mesh density/size Dmax / dx_max?
+
+  How to determine resolution of histogram?
+
+    Don't want to generate lots constraint points
+    bincentres determine from Dmax/dmin and object AABB
+    Use fraction 0 to 1 to determine peak. E.g. nn(i) > frac => xx(i) constraint pointing
+
+* User defined mesh lines:
+
+  [ lines ] = meshReadMeshLine( xFileName , yFileName , zFileName )
+
+  
+Mesh Mapping
+------------
+
+* Don't use FBVH in case of line mesher - but still need to get overall AABB.
+  Or identify and fix div by zeros in FBVH generation for line objects.
+
+* Check BVH is tuned correctly. What happens if we double Nc?
+  Make a function to tune BVH on real mesh.
+
+* Improve efficiency of closed surface mapping in meshVolumeGroup2SurfaceGroup.m.
+
+* Surface mapping is not robust on stair-cased surfaces. E.g. cube at 45 degrees.
+  Improve algorithm so get similar results from CLOSED_SURFACE and SURFACE
+  mapping.
+  
+* Check solid and surface meshers still deal with truncated objects.
+
+* Make line mesher deal with truncated objects.
+  
+* Michael has code to transform non triangular elements into triangles using the
+  MATAB Delauny function. Maybe offer this at higher level using function:
+
+  mesh2 = meshTriangulate( mesh1 )
+
+  x_obj = mesh.nodes(1,mesh.elements(:,objNodes));
+  y_obj = mesh.nodes(2,mesh.elements(:,objNodes));
+  z_obj = mesh.nodes(3,mesh.elements(:,objNodes));
+    
+  if length(mesh.elements(:,1)) > 3 
+    faces = [x_obj' y_obj' z_obj'];
+    faces_ = faces(3,:) == 0;
+    faces(:,faces_) = [];
+    faces = DelaunayTri(faces);     
+    vertices(:,~faces_) = faces.X;
+    vertices(:,faces_) = 0;
+    faces = faces.Triangulation;
+  else % normal case with triangulation
+    faces = mesh.elements(:,objNodes)';
+    vertices = mesh.nodes';
+  end
+    
+  Replaces all non-triangular surface elements with multiple triangles.
+
+* Add more sophisticated ideas from Michael's surface mapper into basic implementation.
+
+* Allow precedence = 0 meaning "do not mesh this object".
+
+* Support nodes in meshSmesh2Unmesh, meshMapGroups, meshWriteVulture.
+
+* Delete unmapped groups from groupGroups.
+   
+   
+Unstructured mesh import/export
+-------------------------------
+
+* meshImportMatlab - import a MATLAB format surface triangluation.
+
+* meshExportMatlab - export a MATLAB format surface triangluation.
+
+* meshWriteSTL( stlFileName , mesh , format )
+
+  + format can be 'ASCII' or 'BINARY'.
+  + Need to create normal vectors - assume right-hand rule for nodes.
+  + Only needs to support triangles - start from meshWriteSurf which 
+    is very close to the required algorithm. 
+
+* [ mesh ] = meshReadSTL( stlFileName )
+
+  + Detect format.
+
+* meshWriteConcept( conDirName , mesh )
+
+  + Current version is not very general.
+
+  + Wires embedded in concept.in file - original CONCEPT-I had ability
+    to read from file?
+
+  + Dealing with closed dielectric bodies is going to be hard and require 
+    more meta information to be stored. E.g blade model - intersection
+    surfaces need to be output separately and everything stitched together
+    with correct topology and without duplicate elements.
+
+    
+Structured mesh exporters
+-------------------------
+
+* How to deal with source and observers?
+
+  + Sources: nodes, lines, planes, surfaces, volumes.
+
+  + Observers: nodes, lines planes, surfaces. volumes.
+
+  In Vulture EX, PW, OP can only be defined for cuboid (possibly degenerate)
+  shapes. In more complex cases may want to e.g define observation of current
+  on curve surface. Related to issue of how to get outputs out and map back 
+  onto input mesh. Also should observers be nodal or use natural elements
+  for output type. 
+
+  + Define new meshing type for SOURCE and OBSERVER which just add the overall
+    bounding box to the structured mesh? 
+    
+* meshWriteVulture( vultureFileName , mesh )
+
+  - Use maxFreq/minFreq to determine waveform parameters.
+
+  - Output sources and observers as bboxes with default parameters.
+
+  - Consider best way to write out objects and combine with rest
+    of mesh. Do we want to always write a full mesh or separate files
+    (mb.mesh, tb.mesh,..) which can be combined by another function
+    with material information to provide a complete mesh?
+
+  - Could generalise material database to return simple medium paramters 
+    and Debye parameters that could be included in mesh. 
+
+    [ modelType , modelParams ] = matModelLookUp( f , matName );
+
+       f used to check realm of validity.
+       modelType - SIMPLE, DEBYE,....
+
+* meshWriteHawk( hawkFileName , mesh )
+
+* Would be nice to export to AMELET-HDF but Octave has no generic
+  HDF5 writing support - need tight control of dataset types and names
+  and attributes. Could possibly save mesh in mat file and read into
+  Python then use pytables. Actually want to add structured mesh to
+  existing AMELET file?
+  
+  
+Performance
+-----------
+
+* Optmise meshSurfaceMapParallelRays - move fixed values out of x/y loops.
+  Is there better way to deal with degenerate case when AABB a surface?
+  
+* Check all sparse arrays operations are handle efficiently:
+
+  [ i1, j1 , s1 ] = find( mesh1.groups );
+  [ i2, j2 , s2 ] = find( mesh2.groups );
+  mesh.groups = sparse( [ i1 ; i2 ] , [ j1 ; j2 + mesh1.numGroups ] , [ s1 ; s2 + mesh1.numElements ] , ...
+                         max( [ i1 ; i2 ] ) , mesh.numGroups );
+
+* Do some profiling to locate current bottlenecks.
+
+                         
+Tests
+-----
+
+* Solids:
+
+  + Spheres of different sizes on fixed size mesh.
+  + Sphere varying resolution of unstructure mesh:
+    - Very low resolution.
+    - Very high resolution.
+  + Hollow sphere with thickness of >> mesh size.
+  + Hollow sphere with thickness of 1-2 times mesh size.
+  + Cylinder of different size at different angles to mesh.
+  + Hollow cylinder with thickness of >> mesh size.
+  + Hollow cyliner with thickness of 1-2 times mesh size.
+  + Three concentric cylinders PEC-dielectric-PEC (coaxial TL):
+     - Mesh outer shells "properly" as shells.
+     - Use three solid cyliners with appropriate priorities.
+  + SAM head - can we close surface:
+    - freeCAD?
+    - various mesh repair tools?
+
+* Closed surfaces:
+
+  + Spheres of different sizes on fixed size mesh.
+  + Cylinder of different size at different angles to mesh.
+  + Torus.
+  + Irregular object with features << mesh size.
+
+* Open surfaces:
+
+  + Planes at various angles to mesh.
+  + Corners (3 sides of cube) at various angles to mesh.
+
+  
+Documentation
+-------------
+
+* More comprehensive user manual.
