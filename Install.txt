@@ -9,9 +9,15 @@ Requirements
      A recent version of GNU Octave.
      http://www.gnu.org/software/octave
 
-     with the optim package from Octaveforge
+     The optim package from Octaveforge
      http://octave.sourceforge.net.
-
+     
+     This will need to be installed separately.
+     If you have an Internet connection this can be done
+     easily from the Octave command line using
+     
+     $ pkg install -forge optim 
+     
    OR 
 
      MathWorks MATLAB
@@ -53,6 +59,16 @@ Requirements
 Quick Start On Linux
 ====================
 
+0. If using GNU Octave add the lines
+
+   if( exist( './startup.m' , 'file' ) )
+     startup
+   end %if
+
+   to the initialisation file ~/.octaverc. This makes Octave read a startup.m
+   file in the current working directory when is is started. This is required
+   by the test-suite for setting paths to m-files.
+
 1. EITHER: Use mercurial to clone the source code repository on Bitbucket:
 
    $ hg clone ssh://hg@bitbucket.org/uoyaeg/aegmesher aegmesher-working
@@ -63,7 +79,7 @@ Quick Start On Linux
 
    https://bitbucket.org/uoyaeg/aegmesher/downloads
 
-   and unzip it into a directory call eagmesher-working
+   and unzip it into a directory call aegmesher-working
 
    $ unzip aeg-aegmesher-x12ey12ey.zip
    $ mv aeg-aegmesher-x12ey12ey aegmesher-working
@@ -71,11 +87,13 @@ Quick Start On Linux
 2. Run tests and install:
 
    $ mkdir aegmesher-build_linux_$(arch)
-   $ cd eagmesher-build_linux_$(arch)
+   $ cd aegmesher-build_linux_$(arch)
    $ cmake -D CMAKE_INSTALL_PREFIX=$HOME -D WITH_MESHER=ON -D WITH_GMSH=ON -D WITH_AMELET=ON -D WITH_CONCEPT=ON -D WITH_GVULTURE=ON ../aegmesher-working
    $ make
    $ make test
 
+   The test output is logged to the file Testing/Temporary/LastTest.log.
+   
    Specific tests can be run using:
 
    $ ctest -R "WireBox_*" -D ExperimentalTest
@@ -88,13 +106,12 @@ Quick Start On Linux
 
    $ make install
 
-   will install the m-files in CMAKE_INSTALL_PREFIX/share/octave/packages/mesh
-   which should be added to your MATLAB/Octave path.
+   This will install the m-files in CMAKE_INSTALL_PREFIX/share/octave/packages/mesh
+   which should then be added to your MATLAB/Octave path.
 
 
 Manual Install
 ==============
 
-At the end of step 1 above copy the sub-directory mesh from the mesh-working directory
-to somewhere and add it to your Octave/MATLAB path.
-
+At the end of step 1 above copy the sub-directory mesh from the aegmesher-working directory
+to somewhere convenient and add it to your Octave/MATLAB path.

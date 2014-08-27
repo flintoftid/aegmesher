@@ -1,5 +1,16 @@
 2014-08-27  Ian David Flintoft  <ian.flintoft@york.ac.uk>
 
+	* ChangeLog.txt, mesh/meshTestTimingSummary.m, tests/CMakeLists.txt,
+	tests/Summary/CMakeLists.txt:
+	user: Ian David Flintoft <ian.flintoft@york.ac.uk> branch 'default'
+
+	added mesh/meshTestTimingSummary.m added
+	tests/Summary/CMakeLists.txt changed ChangeLog.txt changed
+	tests/CMakeLists.txt
+
+	 Added timing summary and plots for tests.
+	[5774e4a0f200] [tip]
+
 	* ChangeLog.txt, mesh/meshCylinders.m:
 	user: Ian David Flintoft <ian.flintoft@york.ac.uk> branch 'default'
 
@@ -10,7 +21,7 @@
 	added mesh/meshCylinders.m
 
 	 Added function for meshing a set of cylinders.
-	[63c2c45fcb1c] [tip]
+	[63c2c45fcb1c]
 
 2014-08-26  Ian David Flintoft  <ian.flintoft@york.ac.uk>
 
