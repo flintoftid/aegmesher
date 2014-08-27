@@ -76,7 +76,9 @@ add_subdirectory ( CubesAndPlane )
 
 # AMELET tests.
 
-# Real model tests.
+# Complex model tests.
 add_subdirectory ( WireBox )
 add_subdirectory ( Blade1 )
 
+# Create test timing summary - must be last!
+add_subdirectory ( Summary )

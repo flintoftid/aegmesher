@@ -1,3 +1,17 @@
+2014-08-27  Ian David Flintoft  <ian.flintoft@york.ac.uk>
+
+	* ChangeLog.txt, mesh/meshCylinders.m:
+	user: Ian David Flintoft <ian.flintoft@york.ac.uk> branch 'default'
+
+	added ChangeLog.txt
+
+	 Added changelog - its one changeset behind.
+
+	added mesh/meshCylinders.m
+
+	 Added function for meshing a set of cylinders.
+	[63c2c45fcb1c] [tip]
+
 2014-08-26  Ian David Flintoft  <ian.flintoft@york.ac.uk>
 
 	* CMakeLists.txt, Install.txt, Licence.txt, Licences
@@ -64,5 +78,5 @@
 	user: Ian David Flintoft <ian.flintoft@york.ac.uk> branch 'default'
 
 	 Initial commit for public release of code.
-	[db5d7f2a7180] [tip]
+	[db5d7f2a7180]
 
