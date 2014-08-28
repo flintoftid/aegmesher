@@ -6,20 +6,18 @@ Things to do
 Prirotiy Items
 --------------
 
-* Add basic front page to Wiki.
-
-* Link to project from personal web sites, RG etc. 
-
-* Make sure all tests work with Octave/MATLAB on Linux/Windows.
+* Make sure all the tests work with both Octave and MATLAB on both Linux amd Windows.
 
 * Integrate Michael's non-uniform mesh generation algorithm.
 
-* Add more of Michael's tests.
+* Add more of Michael's tests to the test-suite.
 
-* Parallel ray/element detection algorithm in meshTriRayIntersection1/2/3 is not robust.
-  Depends mesh size - see what cost of determining epsAngle (see commnents in function
-  file) is. In particular will fail is mesh elements are small - not scale invariant.
-  Can we set more sensible tolerances by analysing the mesh.
+* The parallel ray/element detection algorithm in meshTriRayIntersection1/2/3 
+  is not robust. It depends on the mesh and elements mesh sizes - see the comment
+  in function file is. In particular it will fail if the mesh elements are small
+  - the test is not scale invariant. A full calculation in terms of a tolerance on
+  the angle may be too expensive, but a better heuristic could be dervied by 
+  analysing the mesh to find the smallest elements sizes and ray lengths.
   E.g find minMeshSize and use to determine epsParallelRays, epsRayEnds?
  
 * The structured mesh format has a serious limitation - only one group can 
@@ -28,9 +26,7 @@ Prirotiy Items
   each entity. However for sources, observers and other abstract objects
   like the computational volume this is a problem. 
 
-  Can we generalise the structured mesh to cope with this efficiently?
-
-  Yes - use AMELET-HDF structured mesh format:
+  Generalise the structured mesh to use the AMELET-HDF structured mesh format:
   
   % smesh - structure containing a structured mesh modelled on the AMELET-HDF format [1]:
   %
@@ -407,3 +403,10 @@ Documentation
 -------------
 
 * More comprehensive user manual.
+
+
+Packaging & distribution
+------------------------
+
+* Find way to automatically generate ReadMet.txt from Wiki home page.
+
