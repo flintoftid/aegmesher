@@ -1,4 +1,3 @@
- AEG Blade antenna mesh
 
 
 University_of_York Applied Electromagnetics Group Mesh Generator
