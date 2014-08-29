@@ -95,13 +95,6 @@ function [ fbvh , elementMap ] = meshBuildFBVH( mesh , groupNames , options )
 % [1] M. Pharr and G. Humphreys, "Physically based rendering - from theory to implementation", Morgan Kaupmann, 2004.
 %
 
-  % Need to make these global for octave < 3.8 where nested functions are not fully supported. 
-  global global_bvh;
-  global global_nextNodeIdx;
-  global global_nextElemIdx;
-  global global_elementMap;
-  global global_fbvh;
-
   % Surface area of AABB. Will return Inf for undefnied AABB.
   function [ area ] = bboxSurfaceArea( bbox )
 
@@ -231,13 +224,7 @@ function [ fbvh , elementMap ] = meshBuildFBVH( mesh , groupNames , options )
   % Function to recursively construct BVH tree.
   function [ thisNodeBBox ] = partitionElements( elementIdx , parentNodeIdx , depth , maxDepth , minNumElemPerNode , ...
                                                  maxNumElemPerNode , splitMethodNumber , bboxes , barycentres )
-
-     % Need to make these global for octave < 3.8 where nested functions are not fully supported. 
-     global global_bvh;
-     global global_nextNodeIdx;
-     global global_nextElemIdx;
-     global global_elementMap;
-     
+    
      barycentreMinExtent = 1e-6;
      minSAHElements = 4;
 
@@ -259,7 +246,7 @@ function [ fbvh , elementMap ] = meshBuildFBVH( mesh , groupNames , options )
        % Choose parition direction that has largest barycentre extent.
        barycentreExtents = bcBBoxHigh - bcBBoxLow;
        [ barycentreMaxExtent , dim ] = max( barycentreExtents );
-       global_bvh(parentNodeIdx).dim = dim;
+       bvh(parentNodeIdx).dim = dim;
        if( barycentreMaxExtent < barycentreMinExtent )
          % Elements are approximately degenerate so make a leaf node.
          isLeafNode = true;
@@ -285,25 +272,25 @@ function [ fbvh , elementMap ] = meshBuildFBVH( mesh , groupNames , options )
 
      if( isLeafNode )
        % Leaf node.
-       global_bvh(parentNodeIdx).numElements = numElements;
+       bvh(parentNodeIdx).numElements = numElements;
        % Store element indices.
-       global_bvh(parentNodeIdx).elements = elementIdx;
+       bvh(parentNodeIdx).elements = elementIdx;
        % Add elements to mapping.
-       global_bvh(parentNodeIdx).offset = global_nextElemIdx;
-       global_elementMap(global_nextElemIdx:(global_nextElemIdx+numElements-1)) = elementIdx;
-       global_nextElemIdx = global_nextElemIdx + numElements;
+       bvh(parentNodeIdx).offset = nextElemIdx;
+       elementMap(nextElemIdx:(nextElemIdx+numElements-1)) = elementIdx;
+       nextElemIdx = nextElemIdx + numElements;
      else
        % Interior node.
-       global_bvh(parentNodeIdx).numElements = 0;
+       bvh(parentNodeIdx).numElements = 0;
        % Recurse left and right nodes.
-        leftNodeIdx = global_nextNodeIdx + 1;
-       global_nextNodeIdx = global_nextNodeIdx + 1;
-       global_bvh(parentNodeIdx).lnode = leftNodeIdx;
+        leftNodeIdx = nextNodeIdx + 1;
+       nextNodeIdx = nextNodeIdx + 1;
+       bvh(parentNodeIdx).lnode = leftNodeIdx;
        [ leftBbox ] = partitionElements( leftElementIdx , leftNodeIdx , depth + 1 , maxDepth , minNumElemPerNode , ...
                                          maxNumElemPerNode , splitMethodNumber , bboxes , barycentres );
-       rightNodeIdx = global_nextNodeIdx + 1;
-       global_nextNodeIdx = global_nextNodeIdx + 1;
-       global_bvh(parentNodeIdx).rnode = rightNodeIdx;                                          
+       rightNodeIdx = nextNodeIdx + 1;
+       nextNodeIdx = nextNodeIdx + 1;
+       bvh(parentNodeIdx).rnode = rightNodeIdx;                                          
        [ rightBbox ] = partitionElements( rightElementIdx , rightNodeIdx , depth + 1 , maxDepth , minNumElemPerNode , ...
                                           maxNumElemPerNode , splitMethodNumber , bboxes , barycentres );
        % Combine AABBs of children to give that of this node.
@@ -311,36 +298,32 @@ function [ fbvh , elementMap ] = meshBuildFBVH( mesh , groupNames , options )
      end % if
 
      % Store bounding box in leaf node, also passed back as return value.
-     global_bvh(parentNodeIdx).bbox = thisNodeBBox;
+     bvh(parentNodeIdx).bbox = thisNodeBBox;
      
   end % function
 
   % Function to recursively flatten BVH tree.
   function flattenTree( bvhNodeIdx , fbvhNodeIdx )
 
-     global global_bvh;
-     global global_nextNodeIdx;
-     global global_fbvh;
-
-     if( isempty( global_bvh(bvhNodeIdx).lnode ))
+     if( isempty( bvh(bvhNodeIdx).lnode ))
        % Leaf node.
-       global_fbvh(fbvhNodeIdx).bbox = global_bvh(bvhNodeIdx).bbox;
-       global_fbvh(fbvhNodeIdx).numElements = global_bvh(bvhNodeIdx).numElements;
+       fbvh(fbvhNodeIdx).bbox = bvh(bvhNodeIdx).bbox;
+       fbvh(fbvhNodeIdx).numElements = bvh(bvhNodeIdx).numElements;
        % Offset is index of node first element in elementMap array.
-       global_fbvh(fbvhNodeIdx).offset = global_bvh(bvhNodeIdx).offset;
+       fbvh(fbvhNodeIdx).offset = bvh(bvhNodeIdx).offset;
      else
        % Interior node.
-       global_fbvh(fbvhNodeIdx).bbox = global_bvh(bvhNodeIdx).bbox;
-       global_fbvh(fbvhNodeIdx).numElements = 0;
-       leftNodeIdx = global_bvh(bvhNodeIdx).lnode;
-       rightNodeIdx = global_bvh(bvhNodeIdx).rnode;
-       newLeftNodeIdx = global_nextNodeIdx;
-       global_nextNodeIdx  = global_nextNodeIdx + 1;
+       fbvh(fbvhNodeIdx).bbox = bvh(bvhNodeIdx).bbox;
+       fbvh(fbvhNodeIdx).numElements = 0;
+       leftNodeIdx = bvh(bvhNodeIdx).lnode;
+       rightNodeIdx = bvh(bvhNodeIdx).rnode;
+       newLeftNodeIdx = nextNodeIdx;
+       nextNodeIdx  = nextNodeIdx + 1;
        flattenTree( leftNodeIdx , newLeftNodeIdx );
-       newRightNodeIdx = global_nextNodeIdx;
-       global_nextNodeIdx  = global_nextNodeIdx + 1;
+       newRightNodeIdx = nextNodeIdx;
+       nextNodeIdx  = nextNodeIdx + 1;
       % Offset is index of right child node in flat tree.
-       global_fbvh(fbvhNodeIdx).offset = newRightNodeIdx;
+       fbvh(fbvhNodeIdx).offset = newRightNodeIdx;
        % Recurse down tree.
        flattenTree( rightNodeIdx , newRightNodeIdx );
      end % if
@@ -403,14 +386,14 @@ function [ fbvh , elementMap ] = meshBuildFBVH( mesh , groupNames , options )
   % Initialise BVH.
   % [FIXME] Check if better to pre-allocate or allocate on the fly. maxNodes it typically 
   % far higher than the number used.
-  global_bvh = [];
-  global_bvh(maxNodes).lnode = [];
-  global_bvh(maxNodes).rnode = [];
-  global_bvh(maxNodes).bbox = [];
-  global_bvh(maxNodes).elements = [];
-  global_bvh(maxNodes).numElements = [];
-  global_bvh(maxNodes).offset = [];
-  global_bvh(maxNodes).dim = [];
+  bvh = [];
+  bvh(maxNodes).lnode = [];
+  bvh(maxNodes).rnode = [];
+  bvh(maxNodes).bbox = [];
+  bvh(maxNodes).elements = [];
+  bvh(maxNodes).numElements = [];
+  bvh(maxNodes).offset = [];
+  bvh(maxNodes).dim = [];
 
   % Get list of elements to include in BVH.
   if( isempty( groupNames ) )
@@ -432,24 +415,23 @@ function [ fbvh , elementMap ] = meshBuildFBVH( mesh , groupNames , options )
   numElements =  length( elementIdx );
     
   % Mapping of elements - holds indices all elements with those in leaf nodes % store contiguously.
-  global_elementMap = zeros( 1 , numElements );
+  elementMap = zeros( 1 , numElements );
 
   % Determine normals, AABBs and barycentres.
   % [FIXME] Currently calculates for all elements - restrict to those in elementIdx.
   [ normals , bboxes , barycentres ] = meshCalcElemProp( mesh );
 
-  
   % We don't use the normals.
   clear normals;
 
   % Partition elements.
-  global_nextNodeIdx = 2;
-  global_nextElemIdx = 1;
+  nextNodeIdx = 2;
+  nextElemIdx = 1;
   [ bbox ] = partitionElements( elementIdx , 1 , 0 , maxDepth ,  minNumElemPerNode , maxNumElemPerNode , splitMethodNumber , bboxes , barycentres );
-  numBVHNodes = global_nextNodeIdx - 1;
+  numBVHNodes = nextNodeIdx - 1;
 
   if( isPlot )
-    x = [ global_bvh.numElements ];
+    x = [ bvh.numElements ];
     figure();
     hist( x(find(x)) , 30 );
     xlabel( 'Number of elements in leaf node' );
@@ -458,27 +440,20 @@ function [ fbvh , elementMap ] = meshBuildFBVH( mesh , groupNames , options )
   end % if
   
   % Defense work.
-  % assert( global_nextElemIdx == numElements + 1 );
-  % assert( sort( global_elementMap(:) ) == sort( elementIdx(:) ) );
+  % assert( nextElemIdx == numElements + 1 );
+  % assert( sort( elementMap(:) ) == sort( elementIdx(:) ) );
 
   % Initialise flattened BVH.
-  global_fbvh = [];
-  global_fbvh(numBVHNodes).bbox = [];
-  global_fbvh(numBVHNodes).offset = [];
-  global_fbvh(numBVHNodes).numElements = [];
+  fbvh = [];
+  fbvh(numBVHNodes).bbox = [];
+  fbvh(numBVHNodes).offset = [];
+  fbvh(numBVHNodes).numElements = [];
 
   % Flatten BVH.
   fprintf( '  Flattening BVH\n' );
-  global_nextNodeIdx = 2;
+  nextNodeIdx = 2;
   flattenTree( 1 , 1 );
 
-  % assert( global_nextNodeIdx - 1 == numBVHNodes );
-
-  % Copy globals to return values - don't pass back globals!
-  fbvh = global_fbvh;
-  elementMap = global_elementMap;
-
-  % Explicitly clear globals.
-  clear global_bvh global_nextNodeIdx global_nextElemIdx global_elementMap global_fbvh;
+  % assert( nextNodeIdx - 1 == numBVHNodes );
     
 end % function
