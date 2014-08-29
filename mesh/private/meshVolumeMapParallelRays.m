@@ -72,9 +72,9 @@ function [ isInside  ] = meshVolumeMapParallelRays( mesh , fbvh , elementMap , x
   options.isIncludeRayEnds = true;
 
   % Permute coordinates so rays are cast along the z directrion.
-  objBBox = [ shift( objBBox(1:3) , -dirShift ) , shift( objBBox(4:6) , -dirShift ) ];
-  idxBBox = [ shift( idxBBox(1:3) , -dirShift ) , shift( idxBBox(4:6) , -dirShift ) ];
- 
+  objBBox = [ circshift( objBBox(1:3) , -dirShift ) ; circshift( objBBox(4:6) , -dirShift ) ];
+  idxBBox = [ circshift( idxBBox(1:3) , [ 0 , -dirShift ] ) , circshift( idxBBox(4:6) , [ 0 , -dirShift ] ) ];
+  
   % If using the resolver padding is needed to prevent interpolation algorithm 
   % in resolver becoming complex on computastional volume AABB faces.
   if( isUseInterpResolver )
@@ -114,8 +114,8 @@ function [ isInside  ] = meshVolumeMapParallelRays( mesh , fbvh , elementMap , x
       zDestination = [ x , y , objBBox(6) ];
       zDir = zDestination - zOrigin;
       % Permute coordinate to correct dimension for ray casting.
-      origin = shift( zOrigin , dirShift );
-      destination = shift( zDestination , dirShift );
+      origin = circshift( zOrigin , [ 0 , dirShift ] );    
+      destination = circshift( zDestination , [ 0 , dirShift ] );      
       dir = destination - origin;
       % Cast ray. Elements parallel to elements are discarded by meshIntersectFBVH but other types
       % of singularity will still be present.
@@ -171,6 +171,6 @@ function [ isInside  ] = meshVolumeMapParallelRays( mesh , fbvh , elementMap , x
   end % if
   
   % Permute coordinate axes back to required order.
-  isInside = permute( isInside , shift( [ 1 , 2 , 3 ] , dirShift ) );
+  isInside = permute( isInside , circshift( [ 1 , 2 , 3 ] , [ 0 , dirShift ] ) );
 
 end % function

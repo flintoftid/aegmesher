@@ -64,8 +64,8 @@ function [ isXY , unresolvedCells ] = ...
   options.isIncludeRayEnds = true;
 
   % Permute coordinates so rays are cast along the z directrion.
-  objBBox = [ shift( objBBox(1:3) , -dirShift ) , shift( objBBox(4:6) , -dirShift ) ];
-  idxBBox = [ shift( idxBBox(1:3) , -dirShift ) , shift( idxBBox(4:6) , -dirShift ) ];
+  objBBox = [ circshift( objBBox(1:3) , -dirShift ) ; circshift( objBBox(4:6) , -dirShift ) ];
+  idxBBox = [ circshift( idxBBox(1:3) , [ 0 , -dirShift ] ) , circshift( idxBBox(4:6) , [ 0 , -dirShift ] ) ];
  
   % Number of cells in group's sub-grid.
   numCells = idxBBox(4:6) - idxBBox(1:3) + 1;     
@@ -93,8 +93,8 @@ function [ isXY , unresolvedCells ] = ...
       zDestination = [ x , y , zLocal(end) + options.epsRayEnds ];
       zDir = zDestination - zOrigin;
       % Permute coordinate to correct dimension for ray casting.
-      origin = shift( zOrigin , dirShift );
-      destination = shift( zDestination , dirShift );
+      origin = circshift( zOrigin , [ 0 , dirShift ] );    
+      destination = circshift( zDestination , [ 0 , dirShift ] );
       dir = destination - origin;
       % Cast ray. Elements parallel to elements are discarded by meshIntersectFBVH but other types
       % of singularity will still be present.
@@ -142,10 +142,10 @@ function [ isXY , unresolvedCells ] = ...
 
   % Translate unresolved cell indices to global mesh line numbers and permute back to required order.
   for idx=1:length( unresolvedCells )
-    unresolvedCells{idx} = shift( unresolvedCells{idx} , dirShift );
+    unresolvedCells{idx} = circshift( unresolvedCells{idx} , [ 0 , dirShift ] );
   end % for
 
   % Permute coordinate axes back to required order.
-  isXY = permute( isXY , shift( [ 1 , 2 , 3 ] , dirShift ) );
+  isXY = permute( isXY , circshift( [ 1 , 2 , 3 ] , [ 0 , dirShift ] ) );
 
 end % function
