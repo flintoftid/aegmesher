@@ -47,8 +47,9 @@ function meshTestTimingSummary( isPlot , testNames )
     fh = fopen( [ '../' , testNames{testIdx} , '/' , testNames{testIdx} , '.times' ] , 'r' );
     [ ~ ] = fgetl( fh );
     thisTimes = fscanf( fh , '%f' , Inf );
+    assert( length( thisTimes ) == 9 );
     fprintf( fh_summ , '  %12s %10d %10d %6.2f %6.2f %8.2f %6.2f %6.2f %6.2f %8.2f\n' , ...
-             testNames{testIdx} , thisTimes(8:9) , thisTimes(1:7) );
+             testNames{testIdx} , thisTimes );
     times = [ times ; thisTimes' ];
     fclose( fh );
   end % for
@@ -58,25 +59,25 @@ function meshTestTimingSummary( isPlot , testNames )
   if( isPlot )
   
     figure( 1 );
-    loglog( times(:,8) , times(:,3) , 'ro' );
+    loglog( times(:,1) , times(:,5) , 'ro' );
     hold on;
-    loglog( times(:,8) , times(:,7) , 'b^' );  
-    loglog( times(:,8) , times(:,4) , 'g*' );  
+    loglog( times(:,1) , times(:,6) , 'b^' );  
+    loglog( times(:,1) , times(:,9) , 'g*' );  
     xlabel( 'Number of unstructured elements (-)' );
-    ylabel( 'Mapping time (s)' );  
+    ylabel( 'Time (s)' );  
     title( 'Times versus number of unstructured elements' ); 
-    legend( 'Mapping' , 'Vulture export' , 'S2Un' );
+    legend( 'Mapping' , 'S2Un' , 'Vulture export' , 'location' , 'northwest' );
     print( '-depsc' , 'times_v_num_elem.eps' );
     hold off;
   
     figure( 2 );
-    loglog( times(:,9) , times(:,3) , 'ro' );
+    loglog( times(:,2) , times(:,5) , 'ro' );
     hold on;  
-    loglog( times(:,9) , times(:,7) , 'b^' );  
-    loglog( times(:,8) , times(:,4) , 'g*' );  
+    loglog( times(:,2) , times(:,6) , 'b^' );  
+    loglog( times(:,2) , times(:,9) , 'g*' );  
     xlabel( 'Number of structured cells (-)' );
-    ylabel( 'Mapping time (s)' );  
-    legend( 'Mapping' , 'Vulture export' , 'S2Un' );
+    ylabel( 'Time (s)' );  
+    legend( 'Mapping' , 'S2Un' , 'Vulture export' , 'location' , 'northwest' );
     title( 'Times versus number of structured cells' );
     print( '-depsc' , 'times_v_num_cells.eps' );
     hold off;

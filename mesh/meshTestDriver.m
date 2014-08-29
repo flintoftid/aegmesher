@@ -36,67 +36,69 @@ function meshTestDriver( testName , withVulture )
 % Author: I. D. Flintoft
 % Date: 12/08/2014
 % Version 1.0.0
-
-  fh_timing = fopen( [ testName , '.times' ] , 'w' );
-  fprintf( fh_timing , '#' ); 
-  labels = { '   Read' , '  Lines' , '    Map' , '   S2Un' , '   Save' , '  Write' , '  Vult.' , '#elements' , '   #cells' };
-  for labelIdx=1:length( labels ) 
-   fprintf( fh_timing , '%8s ' , labels{labelIdx} ); 
-  end % for
-  fprintf( fh_timing , '\n' );
-  
+   
+  % Import unstructured mesh.
   tic();
   [ mesh ] = meshReadGmsh( [ testName , '.msh' ] );
-  time_read = toc();
-  fprintf( '(T) Total mesh read time  %.2f s\n' , time_read ); 
-  fprintf( fh_timing , ' %8.2f ' , time_read ); 
-  
+  times(1) = toc();
+  fprintf( '(T) Total mesh read time  %.2f s\n' , times(1) ); 
+
+  % Set meshing options using function is test source directory.
   [ groupNamesToMap , options ] = feval( [ 'meshTest' , testName ] , mesh );
 
+  % Generate mesh lines.
   tic();
   [ lines ] = meshCreateLines( mesh , groupNamesToMap , options );
-  time_lines = toc();
-  fprintf( '(T) Total mesh line creation time %.2f s\n' , time_lines ); 
-  fprintf( fh_timing , '%8.2f ' , time_lines ); 
+  times(2) = toc();
+  fprintf( '(T) Total mesh line creation time %.2f s\n' , times(2) ); 
 
   % meshWriteLines2Gmsh( 'lines.msh' , lines , mesh );
    
+  % Map groups onto structured mesh.
   tic();
   [ smesh ] = meshMapGroups( mesh , groupNamesToMap , lines , options );
-  time_mapping = toc();
-  fprintf( '(T) Total mesh mapping time %.2f s\n' , time_mapping ); 
-  fprintf( fh_timing , '%8.2f ' , time_mapping ); 
+  times(3) = toc();
+  fprintf( '(T) Total mesh mapping time %.2f s\n' , times(3) ); 
   
+  % Convert structured mesh into unstructured format.
   tic();
   [ unmesh ] = meshSmesh2UnmeshFast( smesh );
-  time_convert = toc() ;
-  fprintf( '(T) Total structured to unstructured mesh conversion time %.2f s\n' , time_convert ); 
-  fprintf( fh_timing , '%8.2f ' , time_convert );
+  times(4) = toc() ;
+  fprintf( '(T) Total structured to unstructured mesh conversion time %.2f s\n' , times(4) ); 
   
+  % Save structured mesh. 
   tic();
   meshSaveMesh( [ testName , '.mat' ] , smesh );
-  time_save = toc();
-  fprintf( '(T) Total structured mesh save time %.2f s\n' , time_save ); 
-  fprintf( fh_timing , '%8.2f ' , time_save );
+  times(5) = toc();
+  fprintf( '(T) Total structured mesh save time %.2f s\n' , times(5) ); 
   
+  % Export structured mesh in Gmsh format.
   tic();
   meshWriteGmsh( 'structuredMesh.msh' , unmesh );
-  time_write = toc();
-  fprintf( '(T) Total structured unstructured mesh write time %.2f s\n' , time_write ); 
-  fprintf( fh_timing , '%8.2f ' , time_write );  
+  times(6) = toc();
+  fprintf( '(T) Total structured unstructured mesh write time %.2f s\n' , times(6) ); 
 
   if( strcmp( withVulture , 'ON' ) )
- 
+
+    % Export structured mesh in Vulture format.
     options.vulture.useMaterialNames = false;
     tic();
     meshWriteVulture( 'vulture.mesh' , smesh , options );
-    time_vulture = toc();
-    fprintf( '(T) Total vulture mesh export time  %.2f s\n' , time_vulture );     
-    fprintf( fh_timing , '%8.2f ' , time_vulture );
+    times(7) = toc();
+    fprintf( '(T) Total vulture mesh export time  %.2f s\n' , times(7) );     
+
   end % if
-
-  fprintf( fh_timing , '%8d %8d ' , mesh.numElements , length( lines.x ) * length( lines.y ) * length( lines.z ) );
-
+  
+  % Write timings to file.
+  fh_timing = fopen( [ testName , '.times' ] , 'w' );
+  labels = { '#elements' , '   #cells' , '   Read' , '  Lines' , '    Map' , '   S2Un' , '   Save' , '  Write' , '  Vult.'  };
+  fprintf( fh_timing , '#' ); 
+  for labelIdx=1:length( labels ) 
+   fprintf( fh_timing , '%8s ' , labels{labelIdx} ); 
+  end % for  
+  fprintf( fh_timing , '\n' );
+  fprintf( fh_timing , '%8d %8d ' , mesh.numElements , length( lines.x ) * length( lines.y ) * length( lines.z ) );  
+  fprintf( fh_timing , '%8.2f ' , times );   
   fprintf( fh_timing , '\n' );
   fclose( fh_timing );
 
