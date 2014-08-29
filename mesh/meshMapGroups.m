@@ -176,8 +176,10 @@ function [ smesh ] = meshMapGroups( mesh , groupNamesToMap , lines , options )
         % Cells at imax, jmax, kmax will not be used for volumetric objects.
         smesh.numGroups = smesh.numGroups + 1;
         isInside = meshVolumeMapGroup( mesh , fbvh , elementMap , lines , objBBox , idxBBox , thisOptions );
-        smesh.elements(imin:imax,jmin:jmax,kmin:kmax,1) = ...
-          smesh.elements(imin:imax,jmin:jmax,kmin:kmax,1) .* ~isInside + smesh.numGroups .* isInside;
+        flatIdx = find( isInside );
+        [ i , j , k ] = ind2sub( size( isInside ) , flatIdx );
+        idx = sub2ind( size( smesh.elements ) , imin + i - 1 , jmin + j - 1 , kmin + k - 1 , ones( size( i ) )  );
+        smesh.elements(idx) = smesh.numGroups;
         % Relabel group as volumetric on the structured mesh.
         smesh.groupTypes(smesh.numGroups) = 3;
         smesh.groupNames{smesh.numGroups} = thisGroupName;
@@ -191,12 +193,18 @@ function [ smesh ] = meshMapGroups( mesh , groupNamesToMap , lines , options )
       end % if
       % Map the group. Use the new group index in the structured mesh.
       [ isXY , isYZ , isZX ] = meshSurfaceMapGroup( mesh , fbvh , elementMap , lines , objBBox , idxBBox , thisOptions );
-      smesh.elements(imin:imax,jmin:jmax,kmin:kmax,2) = ...
-        smesh.elements(imin:imax,jmin:jmax,kmin:kmax,2) .* ~isXY + smesh.numGroups .* isXY;
-      smesh.elements(imin:imax,jmin:jmax,kmin:kmax,3) = ...
-        smesh.elements(imin:imax,jmin:jmax,kmin:kmax,3) .* ~isYZ + smesh.numGroups .* isYZ;
-      smesh.elements(imin:imax,jmin:jmax,kmin:kmax,4) = ...
-        smesh.elements(imin:imax,jmin:jmax,kmin:kmax,4) .* ~isZX + smesh.numGroups .* isZX;
+      flatIdx = find( isXY );
+      [ i , j , k ] = ind2sub( size( isXY ) , flatIdx );
+      idx = sub2ind( size( smesh.elements ) , imin + i - 1 , jmin + j - 1 , kmin + k - 1 , 2 * ones( size( i ) )  );
+      smesh.elements(idx) = smesh.numGroups;    
+      flatIdx = find( isYZ );
+      [ i , j , k ] = ind2sub( size( isYZ ) , flatIdx );
+      idx = sub2ind( size( smesh.elements ) , imin + i - 1 , jmin + j - 1 , kmin + k - 1 , 3 * ones( size( i ) )  );
+      smesh.elements(idx) = smesh.numGroups;  
+      flatIdx = find( isZX );
+      [ i , j , k ] = ind2sub( size( isZX ) , flatIdx );
+      idx = sub2ind( size( smesh.elements ) , imin + i - 1 , jmin + j - 1 , kmin + k - 1 , 4 * ones( size( i ) )  );
+      smesh.elements(idx) = smesh.numGroups;  
       smesh.groupTypes(smesh.numGroups) = 2;
       smesh.groupNames{smesh.numGroups} = thisGroupName;
     case 'CLOSED_SURFACE'
@@ -215,13 +223,18 @@ function [ smesh ] = meshMapGroups( mesh , groupNamesToMap , lines , options )
         smesh.numGroups = smesh.numGroups + 1;
         isInside = meshVolumeMapGroup( mesh , fbvh , elementMap , lines , objBBox , idxBBox , thisOptions );
         % Remap as surface object.
-        [ isXY , isYZ , isZX ] = meshVolumeGroup2SurfaceGroup( isInside , idxBBox , thisOptions );
-        smesh.elements(imin:imax,jmin:jmax,kmin:kmax,2) = ...
-        smesh.elements(imin:imax,jmin:jmax,kmin:kmax,2) .* ~isXY + smesh.numGroups .* isXY;
-        smesh.elements(imin:imax,jmin:jmax,kmin:kmax,3) = ...
-        smesh.elements(imin:imax,jmin:jmax,kmin:kmax,3) .* ~isYZ + smesh.numGroups .* isYZ;
-        smesh.elements(imin:imax,jmin:jmax,kmin:kmax,4) = ...
-        smesh.elements(imin:imax,jmin:jmax,kmin:kmax,4) .* ~isZX + smesh.numGroups .* isZX;
+        flatIdx = find( isXY );
+        [ i , j , k ] = ind2sub( size( isXY ) , flatIdx );
+        idx = sub2ind( size( smesh.elements ) , imin + i - 1 , jmin + j - 1 , kmin + k - 1 , 2 * ones( size( i ) ) );
+        smesh.elements(idx) = smesh.numGroups;    
+        flatIdx = find( isYZ );
+        [ i , j , k ] = ind2sub( size( isYZ ) , flatIdx );
+        idx = sub2ind( size( smesh.elements ) , imin + i - 1 , jmin + j - 1 , kmin + k - 1 , 3 * ones( size( i ) ) );
+        smesh.elements(idx) = smesh.numGroups;  
+        flatIdx = find( isZX );
+        [ i , j , k ] = ind2sub( size( isZX ) , flatIdx );
+        idx = sub2ind( size( smesh.elements ) , imin + i - 1 , jmin + j - 1 , kmin + k - 1 , 4 * ones( size( i ) ) );
+        smesh.elements(idx) = smesh.numGroups;          
         % Relabel group as surface on the structured mesh.
         smesh.groupTypes(smesh.numGroups) = 2;
         smesh.groupNames{smesh.numGroups} = thisGroupName;
@@ -235,12 +248,18 @@ function [ smesh ] = meshMapGroups( mesh , groupNamesToMap , lines , options )
       end % if
       % Map the group. Use the new group index in the structured mesh.
       [ isX , isY , isZ ] = meshLineMapGroup( mesh , thisGroupIdx , lines , objBBox , idxBBox , thisOptions );
-      smesh.elements(imin:imax,jmin:jmax,kmin:kmax,5) = ...
-        smesh.elements(imin:imax,jmin:jmax,kmin:kmax,5) .* ~isX + smesh.numGroups .* isX;
-      smesh.elements(imin:imax,jmin:jmax,kmin:kmax,6) = ...
-        smesh.elements(imin:imax,jmin:jmax,kmin:kmax,6) .* ~isY + smesh.numGroups .* isY;
-      smesh.elements(imin:imax,jmin:jmax,kmin:kmax,7) = ...
-        smesh.elements(imin:imax,jmin:jmax,kmin:kmax,7) .* ~isZ + smesh.numGroups .* isZ;
+      flatIdx = find( isX );
+      [ i , j , k ] = ind2sub( size( isX ) , flatIdx );
+      idx = sub2ind( size( smesh.elements ) , imin + i - 1 , jmin + j - 1 , kmin + k - 1 , 5 * ones( size( i ) )  );
+      smesh.elements(idx) = smesh.numGroups;    
+      flatIdx = find( isY );
+      [ i , j , k ] = ind2sub( size( isY ) , flatIdx );
+      idx = sub2ind( size( smesh.elements ) , imin + i - 1 , jmin + j - 1 , kmin + k - 1 , 6 * ones( size( i ) )  );
+      smesh.elements(idx) = smesh.numGroups;  
+      flatIdx = find( isZ );
+      [ i , j , k ] = ind2sub( size( isZ ) , flatIdx );
+      idx = sub2ind( size( smesh.elements ) , imin + i - 1 , jmin + j - 1 , kmin + k - 1 , 7 * ones( size( i ) )  );
+      smesh.elements(idx) = smesh.numGroups;
       smesh.groupTypes(smesh.numGroups) = 1;
       smesh.groupNames{smesh.numGroups} = thisGroupName;
     case 'POINT'
