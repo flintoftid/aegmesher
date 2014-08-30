@@ -3,6 +3,7 @@ User Manual For AEG Mesher
 ==========================
 
 I. D. Flintoft
+M. Berens
 
 
 Overview
@@ -80,16 +81,14 @@ The primary on-disk mesh format is the Gmsh ASCII format version 2.
 
 Functions are provided to read and write this format:
 
-meshReadGmshFast
-meshReadGmsh.m
-meshWriteGmshFast
-meshWriteGmsh
-meshMergeUnstructured.m 
+meshReadGmsh()
+meshWriteGmsh()
+meshMergeUnstructured()
              
 Option handling
 ===============
 
-meshSetDefaultOptions.m   
+meshSetDefaultOptions()
 
 Mesh line generation options
 ----------------------------
@@ -372,78 +371,71 @@ Export options
 Unstructured mesh import
 ========================
 
-  meshReadAmelet.m
-  meshReadAmeletFast.m
-  meshReadGmsh.m
-  meshReadGmshFast.m
-  meshReadSurf.m
+  meshReadAmelet()
+  meshReadGmsh()
+  meshReadSurf()
 
 Unstructured mesh export
 ========================
 
-  meshWriteGmsh.m
-  meshWriteGmshFast.m
-  meshWriteSurf.m
-  meshWriteSurfFast.m
-  meshWriteWire.m
+  meshWriteGmsh()
+  meshWriteSurf()
+  meshWriteWire()
 
   meshWriteLines2Gmsh.m
     
 Unstructured mesh conversion
 ============================
 
-  meshAmelet2Gmsh.m
-  meshAmelet2GmshFast.m
-  meshGmsh2Concept.m    
-  meshGmsh2SurfFast.m
-  meshGmsh2Surf.m
-  meshGmsh2Wire.m
-  meshSurf2Gmsh.m
+  meshAmelet2Gmsh()
+  meshGmsh2Concept()    
+  meshGmsh2Surf()
+  meshGmsh2Wire()
+  meshSurf2Gmsh()
   
 Structured mesh export
 ======================
 
-  meshWriteVulture.m
+  meshWriteVulture()
  
 Mesh tools
 ==========
 
-  meshMergeUnstructured.m
-  meshSmesh2Unmesh.m
-  meshPerimeter2Geo.m
+  meshMergeUnstructured()
+  meshSmesh2Unmesh()
+  meshPerimeter2Geo()
   
 Structured mesh generation
 ==========================
 
-  meshSetDefaultOptions.m
-  meshGetGroupIndices.m
-  meshCreateLines.m
-  meshMapGroups.m
+  meshGetGroupIndices()
+  meshCreateLines()
+  meshMapGroups()
 
   These are internal functions:
   
-  meshCalcElemProp.m
-  meshBuildFBVH.m
-  meshIntersectFBVH.m
-  meshLineMapGroup.m
-  meshSurfaceMapGroup.m
-  meshSurfaceMapParallelRays.m 
-  meshVolumeGroup2SurfaceGroup.m
-  meshVolumeMapGroup.m
-  meshVolumeMapDivergentRays.m
-  meshVolumeMapParallelRays.m  
-  meshResolveRayVolume.m
+  meshCalcElemProp()
+  meshBuildFBVH()
+  meshIntersectFBVH()
+  meshLineMapGroup()
+  meshSurfaceMapGroup()
+  meshSurfaceMapParallelRays() 
+  meshVolumeGroup2SurfaceGroup(0
+  meshVolumeMapGroup()
+  meshVolumeMapDivergentRays()
+  meshVolumeMapParallelRays() 
+  meshResolveRayVolume()
 
 Testing
 =======
 
-  meshTestCreateLines.m
-  meshTestDriver.m
-  meshTestFBVH.m
-  meshTestMapGroups.m
-  meshTestPerimeter2Geo.m
-  meshTestResolveRayVolume.m
-  meshTimeIntersections.m
+  meshTestCreateLines()
+  meshTestDriver()
+  meshTestTimingSummary()
+  meshTestFBVH()
+  meshTestMapGroups()
+  meshTestResolveRayVolume()
+  meshTimeIntersections()
     
 Tutorial example
 ================

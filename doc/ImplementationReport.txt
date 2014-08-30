@@ -6,7 +6,7 @@ Ian Flintoft
 Version 2 - 06/12/2012
 
 
-This early document is superceded by the report:
+This early document is now superceded by the report:
 
 Michael Berens, "Algorithm for mesh generation with application for
 FDTD", Internship Report, University of York and The Leibniz 

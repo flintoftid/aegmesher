@@ -3,10 +3,10 @@ Things to do
 ============
 
 
-Prirotiy Items
+Priority Items
 --------------
 
-* Make sure all the tests work with both Octave and MATLAB on both Linux amd Windows.
+* Make sure all the tests work with both Octave and MATLAB on both Linux and Windows.
 
 * Integrate Michael's non-uniform mesh generation algorithm.
 
@@ -14,9 +14,9 @@ Prirotiy Items
 
 * The parallel ray/element detection algorithm in meshTriRayIntersection1/2/3 
   is not robust. It depends on the mesh and elements mesh sizes - see the comment
-  in function file is. In particular it will fail if the mesh elements are small
+  in the function file. In particular it will fail if the mesh elements are small
   - the test is not scale invariant. A full calculation in terms of a tolerance on
-  the angle may be too expensive, but a better heuristic could be dervied by 
+  the angle may be too expensive, but a better heuristic could be derived by 
   analysing the mesh to find the smallest elements sizes and ray lengths.
   E.g find minMeshSize and use to determine epsParallelRays, epsRayEnds?
  
@@ -24,7 +24,8 @@ Prirotiy Items
   exist on each node/edge/face/volume. For the real physical objects
   this is not too serious since only one physical object can exist on
   each entity. However for sources, observers and other abstract objects
-  like the computational volume this is a problem. 
+  like the computational volume this is a problem. This needs to be fixed
+  before other things like sources, observers, data on the mesh can be progressed.
 
   Generalise the structured mesh to use the AMELET-HDF structured mesh format:
   
@@ -46,7 +47,7 @@ Prirotiy Items
   %        .groups{}          - cell array of bounding boxes of structured mesh elements for
   %                             each group. groups{groupIdx} is a 3xn or 6xn array of structured mesh
   %                             indices of the bounding box corners of the elements in the group. For
-  %                             node groupds only one coordinate is required (BBox is degenerate).
+  %                             node groups only one coordinate is required (BBox is degenerate).
   %                              
   %                             For group type 0 (node): groups{groupIdx} is 3xnumNodesInGroup array
   %                                                      groups{groupIdx}(coordIdx,nodeIdx)
@@ -71,85 +72,67 @@ Prirotiy Items
   %                             groupGroup(i,j) gives the i-th index (into the groups array) of the
   %                             j-th group of groups. Hierarchical group of groups are NOT SUPPORTED.
 
-  function [ idx ] = meshExplicitToImplicitNodeNums( nx , ny , nz , ijk , j , k );
-  
-    if( nargin == 4 )
-      i = ijk(:,1);
-      j = ijk(:,2);
-      k = ijk(:,3);
-    else
-      i = ijk;
-    end % if
-             
-    idx = i + ( j - 1 ) * nx + ( k - 1 ) * ny * nx;
-    
-  end % function
-  
-  function [ ijk , j , k ] = meshImplicitytoExplicit( nx , ny , nz , idx );
- 
-    k = 1 + floor( idx / ny / nx );
-    j = 1 + floor( ( idx - ( k - 1 ) * ny * nx ) / nx );
-    i = idx - ( j - 1 ) * nx - ( k - 1 ) * ny * nx;  
-                
-    if( nargout == 1 )
-      ijk = [ i ; j ; k ]; 
-    else
-      ijk = i;
-    end % if
-                  
-  end % function  
-  
-  nx=5;
-  ny=6;
-  nz=3;
-  
-  for i=1:nx
-    for j=1:ny
-      for k=1:nz
-        isXY(i,j,k) = 100 * i + 10 * j + k;
-      end
-    end
-  end
-  
-  To map an isXY(i,j,k) format onto the new format
-  
-  % Flatten.
-  isXYflat = reshape( isXY , 1  , nx * ny * nz );
-  
-  % Find used elements.
-  idx = find( isXYflat )
-  
-  % Map back to indices. 
-  [ i,j,k ] = meshImplicitytoExplicit( nx , ny , nz , idx )
+  % Node
+  bboxStencils = [ 0 , 0 , 0 ; ....   % Node
+                   1 , 0 , 0 ; ...    % x-edge
+                   0 , 1 , 0 ; ...    % y-edge  
+                   0 , 0 , 1 ; ...    % z-edge
+                   1 , 1 , 0 ; ...    % xy-face
+                   0 , 1 , 1 ; ...    % yz-face  
+                   1 , 0 , 1 ; ...    % zx-face                   
+                   1 , 1 , 1 ];       % cell    
 
-  % Map indices:  
-                 
-  % Node group.
-  smesh.groups{groupIdx} = [ i ; j ; k ];
+  % Nodes.
+  [ isNode ] = meshNodeMapGroup( mesh , thisGroupIdx , lines , objBBox , idxBBox , thisOptions );    
+  bboxType = 1;  
+  flatIdx = find( isNode );
+  [ i , j , k ] = ind2sub( size( isInGroup ) , flatIdx );
+  groups{smesh.numGroups} = [ imin + i - 1 , jmin + j - 1 , kmin + k - 1 ];
 
-  % X edge group
-  stencil = [ 1 ; 0 ; 0 ];  
+  % Lines.
+  [ isX , isY , isZ ] = meshLineMapGroup( mesh , thisGroupIdx , lines , objBBox , idxBBox , thisOptions );  
+  bboxType = 2;                              
+  flatIdx = find( isX );
+  [ i , j , k ] = ind2sub( size( isX ) , flatIdx );
+  groups{smesh.numGroups} = [ imin + i - 1 , jmin + j - 1 , kmin + k - 1 , ...
+                              imin + i - 1 + bboxStencils(bboxType,1) , jmin + j - 1 + bboxStencils(bboxType,2) , kmin + k - 1 + bboxStencils(bboxType,3) ];
+  bboxType = 3;                              
+  flatIdx = find( isY );
+  [ i , j , k ] = ind2sub( size( isY ) , flatIdx );
+  groups{smesh.numGroups} = [ imin + i - 1 , jmin + j - 1 , kmin + k - 1 , ...
+                              imin + i - 1 + bboxStencils(bboxType,1) , jmin + j - 1 + bboxStencils(bboxType,2) , kmin + k - 1 + bboxStencils(bboxType,3) ];  
+  bboxType = 4;                              
+  flatIdx = find( isZ );
+  [ i , j , k ] = ind2sub( size( isZ ) , flatIdx );
+  groups{smesh.numGroups} = [ imin + i - 1 , jmin + j - 1 , kmin + k - 1 , ...
+                              imin + i - 1 + bboxStencils(bboxType,1) , jmin + j - 1 + bboxStencils(bboxType,2) , kmin + k - 1 + bboxStencils(bboxType,3) ];
+                              
+  % Surfaces.
+  [ isXY , isYZ , isZX ] = meshSurfaceMapGroup( mesh , fbvh , elementMap , lines , objBBox , idxBBox , thisOptions );  
+  bboxType = 5;                              
+  flatIdx = find( isXY );
+  [ i , j , k ] = ind2sub( size( isXY ) , flatIdx );
+  groups{smesh.numGroups} = [ imin + i - 1 , jmin + j - 1 , kmin + k - 1 , ...
+                              imin + i - 1 + bboxStencils(bboxType,1) , jmin + j - 1 + bboxStencils(bboxType,2) , kmin + k - 1 + bboxStencils(bboxType,3) ];
+  bboxType = 6;                              
+  flatIdx = find( isYZ );
+  [ i , j , k ] = ind2sub( size( isYZ ) , flatIdx );
+  groups{smesh.numGroups} = [ imin + i - 1 , jmin + j - 1 , kmin + k - 1 , ...
+                              imin + i - 1 + bboxStencils(bboxType,1) , jmin + j - 1 + bboxStencils(bboxType,2) , kmin + k - 1 + bboxStencils(bboxType,3) ];  
+  bboxType = 7;                              
+  flatIdx = find( isZX );
+  [ i , j , k ] = ind2sub( size( isZX ) , flatIdx );
+  groups{smesh.numGroups} = [ imin + i - 1 , jmin + j - 1 , kmin + k - 1 , ...
+                              imin + i - 1 + bboxStencils(bboxType,1) , jmin + j - 1 + bboxStencils(bboxType,2) , kmin + k - 1 + bboxStencils(bboxType,3) ];
+                              
+  % Volumes.
+  isInside = meshVolumeMapGroup( mesh , fbvh , elementMap , lines , objBBox , idxBBox , thisOptions );
+  bboxType = 8;
+  flatIdx = find( isInside );
+  [ i , j , k ] = ind2sub( size( isInside ) , flatIdx );
+  groups{smesh.numGroups} = [ imin + i - 1 , jmin + j - 1 , kmin + k - 1 , ...
+                              imin + i - 1 + bboxStencils(bboxType,1) , jmin + j - 1 + bboxStencils(bboxType,2) , kmin + k - 1 + bboxStencils(bboxType,3) ];
 
-  % Y edge group
-  stencil = [ 0 ; 1 ; 0 ];  
-  
-  % Z edge group
-  stencil = [ 0 ; 0 ; 1 ];  
-  
-  % XY face group.
-  stencil = [ 1 ; 1 ; 0 ];
-
-  % YZ face group.
-  stencil = [ 0 ; 1 ; 1 ];
-  
-  % ZX face group.
-  stencil = [ 1 ; 0 ; 1 ];
-  
-  % cell volume group.
-  stencil = [ 1 ; 1 ; 1 ];  
-  
-  smesh.groups{groupIdx} = [ i ; j ; k ; i + stencil(1) ; j + stencil(2) ; k + stencil(3) ];
- 
   Need to consider shape of arrays.
   
   Will be much more memory efficient for sparsely populated grids.
@@ -323,6 +306,10 @@ Structured mesh exporters
     
 * meshWriteVulture( vultureFileName , mesh )
 
+  - options.vulture.meshScaleFactor
+  
+    Scale structure on output.
+  
   - Use maxFreq/minFreq to determine waveform parameters.
 
   - Output sources and observers as bboxes with default parameters.
@@ -332,7 +319,7 @@ Structured mesh exporters
     (mb.mesh, tb.mesh,..) which can be combined by another function
     with material information to provide a complete mesh?
 
-  - Could generalise material database to return simple medium paramters 
+  - Could generalise material database to return simple medium parameters 
     and Debye parameters that could be included in mesh. 
 
     [ modelType , modelParams ] = matModelLookUp( f , matName );
@@ -371,17 +358,17 @@ Tests
 * Solids:
 
   + Spheres of different sizes on fixed size mesh.
-  + Sphere varying resolution of unstructure mesh:
+  + Sphere varying resolution of unstructured mesh:
     - Very low resolution.
     - Very high resolution.
   + Hollow sphere with thickness of >> mesh size.
   + Hollow sphere with thickness of 1-2 times mesh size.
   + Cylinder of different size at different angles to mesh.
   + Hollow cylinder with thickness of >> mesh size.
-  + Hollow cyliner with thickness of 1-2 times mesh size.
+  + Hollow cylinder with thickness of 1-2 times mesh size.
   + Three concentric cylinders PEC-dielectric-PEC (coaxial TL):
      - Mesh outer shells "properly" as shells.
-     - Use three solid cyliners with appropriate priorities.
+     - Use three solid cylinders with appropriate priorities.
   + SAM head - can we close surface:
     - freeCAD?
     - various mesh repair tools?
@@ -408,5 +395,5 @@ Documentation
 Packaging & distribution
 ------------------------
 
-* Find way to automatically generate ReadMet.txt from Wiki home page.
+* Find way to automatically generate ReadMe.txt from Wiki home page.
 

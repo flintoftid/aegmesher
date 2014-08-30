@@ -5,11 +5,7 @@
 
    This could be related to the parallel ray detection heuristic!
 
- * Mapper may be putting MBs in top cell of smesh.elements which should
-   only be use for TBs/TWs in plane of external surface on high coords
-   faces.
- 
- * Tests BLADE1_surfchk fails because gmsh -check regards repeated elements as 
-   errors. These aren't really failures but a difference in semantics 
-   in the use of the gmsh file format.
+ * Tests *_surfchk often fails because gmsh -check regards repeated 
+   elements as errors. These aren't really failures but a difference 
+   in semantics in the use of the gmsh file format.
 

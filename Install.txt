@@ -84,7 +84,7 @@ Quick Start On Linux
    $ unzip aeg-aegmesher-x12ey12ey.zip
    $ mv aeg-aegmesher-x12ey12ey aegmesher-working
 
-2. Run tests and install:
+2. Run tests:
 
    $ mkdir aegmesher-build_linux_$(arch)
    $ cd aegmesher-build_linux_$(arch)
@@ -101,6 +101,9 @@ Quick Start On Linux
    To run specific tests logging full output to file (useful for debugging):
 
    $ ctest -V -R "BLADE1_*" -D ExperimentalTest | tee output.txt
+
+   NOTE: Currently the tests will pass providing all the elements of the test to completion
+   without error. No check is made yet of the correctness or even sanity of the final output meshes.
 
 3. Install the software with
 
