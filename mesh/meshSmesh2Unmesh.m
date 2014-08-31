@@ -1,10 +1,10 @@
-function [ mesh ] = meshSmesh2Unmesh( smesh )
+function [ mesh ] = meshSmesh2UnmeshFast( smesh )
 %
-% meshSmesh2Unmesh - Converts a structured mesh into an unstructured mesh.
+% meshSmesh2UnmeshFast - Converts a structured mesh into an unstructured mesh.
 %
 % Usage:
 %
-% [ mesh ] = meshSmesh2Unmesh( smesh )
+% [ mesh ] = meshSmesh2UnmeshFast( smesh )
 %
 % Inputs:
 %
@@ -45,6 +45,48 @@ function [ mesh ] = meshSmesh2Unmesh( smesh )
 % Refactored to remove repeated code.
 % Changed semantics of unstructured mesh surface elements to match Vulture.
 
+% Author: I. D. Flintoft
+% Date: 25/08/2014
+% Version 1.3.0
+% Refactored into higlhy vectoried code to improve scalability.
+
+  % Element types. 
+  elementTypesData = meshElementTypes();
+  
+  % Entity indices must be the flat array index entityIdx = sub2ind( [ 2 , 2 , 2 ] , mask(1) + 1 , mask(2) + 1 , mask(3) + 1 ).
+  % Cell, mask = [ 1 , 1 , 1 ].
+  numElemVertices(8) = 8;
+  elemStencil{8} = [ 0 0 0 ; 1 0 0 ; 1 1 0 ; 0 1 0 ; 0 0 1 ; 1 0 1 ; 1 1 1  ; 0 1 1 ]; 
+  elemTypes(8) = [ 104 ];
+  % xy-face, mask = [ 1 , 1 , 0 ].
+  numElemVertices(4) = 4;
+  elemStencil{4} = [ 0 0 0 ; 1 0 0 ; 1 1 0 ; 0 1 0 ];
+  elemTypes(4) = [ 13 ];  
+  % yz-face, mask = [ 0 , 1 , 1 ].
+  numElemVertices(7) = 4;
+  elemStencil{7} = [ 0 0 0 ; 0 1 0 ; 0 1 1 ; 0 0 1 ];
+  elemTypes(7) = [ 13 ];  
+  % zx-face, mask = [ 1 , 0 , 1 ].
+  numElemVertices(6) = 4;
+  elemStencil{6} = [ 0 0 0 ; 1 0 0 ; 1 0 1 ; 0 0 1 ];
+  elemTypes(6) = [ 13 ]; 
+  % x-edge, mask = [ 1 , 0 , 0 ].
+  numElemVertices(2) = 2;
+  elemStencil{2} = [ 0 0 0 ; 1 0 0 ];
+  elemTypes(2) = [ 1 ]; 
+  % y-edge, mask = [ 0 , 1 , 0 ].
+  numElemVertices(3) = 2;
+  elemStencil{3} = [ 0 0 0 ; 0 1 0 ];
+  elemTypes(3) = [ 1 ]; 
+  % z-edge, mask = [ 0 , 0 , 1 ].
+  numElemVertices(5) = 2;
+  elemStencil{5} = [ 0 0 0 ; 0 0 1 ];
+  elemTypes(5) = [ 1 ]; 
+  % node, mask = [ 0 , 0 , 0 ].
+  numElemVertices(1) = 1;
+  elemStencil{1} = [ 0 0 0 ];
+  elemTypes(1) = [ 199 ]; 
+  
   % Carry across invariant data into unstructured mesh.
   mesh.dimension = smesh.dimension;
   mesh.numGroups = smesh.numGroups;
@@ -63,315 +105,93 @@ function [ mesh ] = meshSmesh2Unmesh( smesh )
   Nx = length( x );
   Ny = length( y );
   Nz = length( z );
-  assert( Nx == size(smesh.elements,1) );
-  assert( Ny == size(smesh.elements,2) );
-  assert( Nz == size(smesh.elements,3) );
-
-  % Mapping from (i,j,k) to node index for used nodes.
-  nodeMap = zeros( Nx , Ny , Nz , 'int32' );
   
-  % Array of node coordinates.
-  nodes = [];
-
-  % First pass over structured mesh identifying used nodes and 
-  % counting number of elements. Used nodes are collected and a
-  % mapping constructed for use in the second pass.
-  nodesIdx = 1;
-  numElements = 0;
-  for i = 1:Nx
-    for j = 1:Ny
-      for k = 1:Nz
-        % Cell volume (i,j,k,1).
-        if( size( smesh.elements , 4 ) >= 1 )
-          if( smesh.elements(i,j,k,1) ~= 0 )
-            numElements = numElements + 1;
-            if( nodeMap(i,j,k) == 0 )
-              nodeMap(i,j,k) = nodesIdx;
-              nodes(1:3,nodesIdx) = [ x(i) , y(j) , z(k) ];
-              nodesIdx = nodesIdx + 1;
-            end % if
-            if( nodeMap(i+1,j,k) == 0 )
-              nodeMap(i+1,j,k) = nodesIdx;
-              nodes(1:3,nodesIdx) = [ x(i+1) , y(j) , z(k)];
-              nodesIdx = nodesIdx + 1;
-            end % if
-            if( nodeMap(i+1,j+1,k) == 0 )
-              nodeMap(i+1,j+1,k) = nodesIdx;
-              nodes(1:3,nodesIdx) = [ x(i+1) , y(j+1) , z(k) ];
-              nodesIdx = nodesIdx + 1;
-            end % if
-            if( nodeMap(i,j+1,k) == 0 )
-              nodeMap(i,j+1,k) = nodesIdx;
-              nodes(1:3,nodesIdx) = [ x(i) , y(j+1) , z(k) ];
-              nodesIdx = nodesIdx + 1;
-            end % if
-            if( nodeMap(i,j,k+1) == 0 )
-              nodeMap(i,j,k+1) = nodesIdx;
-              nodes(1:3,nodesIdx) = [ x(i) , y(j) , z(k+1) ];
-              nodesIdx = nodesIdx + 1;
-            end % if
-            if( nodeMap(i+1,j,k+1) == 0 )
-              nodeMap(i+1,j,k+1) = nodesIdx;
-              nodes(1:3,nodesIdx) = [ x(i+1) , y(j) , z(k+1) ];
-              nodesIdx = nodesIdx + 1;
-            end % if
-            if( nodeMap(i+1,j+1,k+1) == 0 )
-              nodeMap(i+1,j+1,k+1) = nodesIdx;
-              nodes(1:3,nodesIdx) = [ x(i+1) , y(j+1) , z(k+1) ];
-              nodesIdx = nodesIdx + 1;
-            end % if
-            if( nodeMap(i,j+1,k+1) == 0 )
-              nodeMap(i,j+1,k+1) = nodesIdx;
-              nodes(1:3,nodesIdx) = [ x(i) , y(j+1) , z(k+1) ];
-              nodesIdx = nodesIdx + 1;
-            end % if
-          end %if
-        end % if
-        % xy boundary surface (i,j,k,2).
-        if( size( smesh.elements , 4 ) >= 2 )
-          if( smesh.elements(i,j,k,2) ~= 0 )
-            numElements = numElements + 1;    
-            if( nodeMap(i,j,k) == 0 )
-              nodeMap(i,j,k) = nodesIdx;
-              nodes(1:3,nodesIdx) = [ x(i) , y(j) , z(k) ];
-              nodesIdx = nodesIdx + 1;
-            end % if
-            if( nodeMap(i+1,j,k) == 0 )
-              nodeMap(i+1,j,k) = nodesIdx;
-              nodes(1:3,nodesIdx) = [ x(i+1) , y(j) , z(k) ];
-              nodesIdx = nodesIdx + 1;
-            end % if
-            if( nodeMap(i+1,j+1,k) == 0 )
-              nodeMap(i+1,j+1,k) = nodesIdx;
-              nodes(1:3,nodesIdx) = [ x(i+1) , y(j+1) , z(k) ];
-              nodesIdx = nodesIdx + 1;
-            end % if
-            if( nodeMap(i,j+1,k) == 0 )
-              nodeMap(i,j+1,k) = nodesIdx;
-              nodes(1:3,nodesIdx) = [ x(i) , y(j+1) , z(k) ];
-              nodesIdx = nodesIdx + 1;
-            end % if           
-          end % if
-        end %if
-        % yz boundary surface (i,j,k,3).
-        if( size( smesh.elements , 4 ) >= 3 )
-          if( smesh.elements(i,j,k,3) ~= 0 )    
-            numElements = numElements + 1;         
-            if( nodeMap(i,j,k) == 0 )
-              nodeMap(i,j,k) = nodesIdx;
-              nodes(1:3,nodesIdx) = [ x(i) , y(j) , z(k) ];              
-              nodesIdx = nodesIdx + 1;
-            end % if
-            if( nodeMap(i,j+1,k) == 0 )
-              nodeMap(i,j+1,k) = nodesIdx;
-              nodes(1:3,nodesIdx) = [ x(i) , y(j+1) , z(k) ];
-              nodesIdx = nodesIdx + 1;
-            end % if
-            if( nodeMap(i,j+1,k+1) == 0 )
-              nodeMap(i,j+1,k+1) = nodesIdx;
-              nodes(1:3,nodesIdx) = [ x(i) , y(j+1) , z(k+1) ];
-              nodesIdx = nodesIdx + 1;
-            end % if
-            if( nodeMap(i,j,k+1) == 0 )
-              nodeMap(i,j,k+1) = nodesIdx;
-              nodes(1:3,nodesIdx) = [x(i) , y(j) , z(k+1) ];
-              nodesIdx = nodesIdx + 1;
-            end % if
-          end % if
-        end % if
-        % zx boundary surface (i,j,k,4).
-        if( size( smesh.elements , 4 ) >= 4 )        
-          if( smesh.elements(i,j,k,4) ~= 0 )   
-            numElements = numElements + 1;       
-            if( nodeMap(i,j,k) == 0 )
-              nodeMap(i,j,k) = nodesIdx;
-              nodes(1:3,nodesIdx) = [ x(i) , y(j) , z(k) ];
-              nodesIdx = nodesIdx + 1;
-            end % if
-            if( nodeMap(i+1,j,k) == 0 )
-              nodeMap(i+1,j,k) = nodesIdx;
-              nodes(1:3,nodesIdx) = [ x(i+1) , y(j) , z(k) ];
-              nodesIdx = nodesIdx + 1;
-            end % if
-            if( nodeMap(i+1,j,k+1) == 0 )
-              nodeMap(i+1,j,k+1) = nodesIdx;
-              nodes(1:3,nodesIdx) = [ x(i+1) , y(j) , z(k+1) ];
-              nodesIdx = nodesIdx + 1;
-            end % if
-            if( nodeMap(i,j,k+1) == 0 )
-              nodeMap(i,j,k+1) = nodesIdx;
-              nodes(1:3,nodesIdx) = [ x(i) , y(j) , z(k+1) ];
-              nodesIdx = nodesIdx + 1;
-            end % if
-          end %if
-        end % if 
-        if( size( smesh.elements , 4 ) >= 5 )
-          % x edge (i,j,k,5).
-          if( smesh.elements(i,j,k,5) ~= 0 )   
-            numElements = numElements + 1;     
-            if( nodeMap(i,j,k) == 0 )
-              nodeMap(i,j,k) = nodesIdx;
-              nodes(1:3,nodesIdx) = [ x(i) , y(j) , z(k) ];
-              nodesIdx = nodesIdx + 1;
-            end % if
-            if( nodeMap(i+1,j,k) == 0 )
-              nodeMap(i+1,j,k) = nodesIdx;
-              nodes(1:3,nodesIdx) = [ x(i+1) , y(j) , z(k) ];
-              nodesIdx = nodesIdx + 1;
-            end % if
-          end % if         
-        end % if
-        if( size( smesh.elements , 4 ) >= 6 )
-          % y edge (i,j,k,6).
-          if( smesh.elements(i,j,k,6) ~= 0 )   
-            numElements = numElements + 1;     
-            if( nodeMap(i,j,k) == 0 )
-              nodeMap(i,j,k) = nodesIdx;
-              nodes(1:3,nodesIdx) = [ x(i) , y(j) , z(k) ];
-              nodesIdx = nodesIdx + 1;
-            end % if
-            if( nodeMap(i,j+1,k) == 0 )
-              nodeMap(i,j+1,k) = nodesIdx;
-              nodes(1:3,nodesIdx) = [ x(i) , y(j+1) , z(k) ];
-              nodesIdx = nodesIdx + 1;
-            end % if
-          end % if         
-        end % if
-        if( size( smesh.elements , 4 ) >= 7 )
-          % z edge (i,j,k,7).
-          if( smesh.elements(i,j,k,7) ~= 0 )   
-            numElements = numElements + 1;     
-            if( nodeMap(i,j,k) == 0 )
-              nodeMap(i,j,k) = nodesIdx;
-              nodes(1:3,nodesIdx) = [ x(i) , y(j) , z(k) ];
-              nodesIdx = nodesIdx + 1;
-            end % if
-            if( nodeMap(i,j,k+1) == 0 )
-              nodeMap(i,j,k+1) = nodesIdx;
-              nodes(1:3,nodesIdx) = [ x(i) , y(j) , z(k+1) ];
-              nodesIdx = nodesIdx + 1;
-            end % if
-          end % if         
-        end % if
-      end % for
-    end % for
+  % Calculate flattened index stencils for this mesh size.
+  implicitStencil = zeros(8,8);
+  for entityNum=1:length( numElemVertices )
+    stencil = elemStencil{entityNum};
+    implicitStencil(entityNum,1:numElemVertices(entityNum)) = stencil(:,1)' + Nx * stencil(:,2)' + Nx * Ny * stencil(:,3)';
+  end % for
+  
+  % Find number of elements in each group.
+  for groupIdx=1:mesh.numGroups
+    numElementsInGroup(groupIdx) = size( smesh.groups{groupIdx} , 1 );
   end % for
 
-  % Assemble used nodes.
-  mesh.numNodes = nodesIdx - 1;
-  mesh.nodes = nodes;
+  % Initialise arrays.
+  mesh.numElements = sum( numElementsInGroup );
+  mesh.elementTypes = zeros( 1 , mesh.numElements ); 
+  mesh.elements = sparse( 8 , mesh.numElements );
+  %mesh.elements = zeros( 8 , mesh.numElements );
+  mesh.groups = sparse( max( numElementsInGroup ) , mesh.numGroups );
+  %mesh.groups = zeros( max( numElementsInGroup ) , mesh.numGroups );
 
-  % Variables to collect node, element and group information.
-  mesh.numElements = numElements;
-  mesh.elements = zeros( 8 , numElements );
-  mesh.elementTypes = zeros( 1 , numElements );
-  groups = zeros(1,smesh.numGroups);
+  % Array used to mark which nodes (flat index) are used.
+  isNodeUsed = false( 1 , Nx * Ny * Nz );
 
-  % Second pass over structured mesh collecting elements and their groups.
-  % Nodes indices are determined from the map constructed in the first pass.
-  elementIdx = 1;
-  for i = 1:Nx
-    for j = 1:Ny
-      for k = 1:Nz
-        if( size( smesh.elements , 4 ) >= 1 )
-          if( smesh.elements(i,j,k,1) ~= 0 )
-            % Cell volume (i,j,k,1).         
-            mesh.elements(1,elementIdx) = nodeMap(i,j,k);
-            mesh.elements(2,elementIdx) = nodeMap(i+1,j,k);
-            mesh.elements(3,elementIdx) = nodeMap(i+1,j+1,k);
-            mesh.elements(4,elementIdx) = nodeMap(i,j+1,k);
-            mesh.elements(5,elementIdx) = nodeMap(i,j,k+1);
-            mesh.elements(6,elementIdx) = nodeMap(i+1,j,k+1);
-            mesh.elements(7,elementIdx) = nodeMap(i+1,j+1,k+1);
-            mesh.elements(8,elementIdx) = nodeMap(i,j+1,k+1);   
-            mesh.elementTypes(elementIdx) = 104;   
-            groupIdx = smesh.elements(i,j,k,1);
-            groups(end+1,groupIdx) = elementIdx;
-            elementIdx = elementIdx + 1;
-          end % if
-        end % if  
-        if( size( smesh.elements , 4 ) >= 2 )
-          if( smesh.elements(i,j,k,2) ~= 0 )
-            % xy boundary surface (i,j,k,2).
-            mesh.elements(1,elementIdx) = nodeMap(i,j,k);
-            mesh.elements(2,elementIdx) = nodeMap(i+1,j,k);
-            mesh.elements(3,elementIdx) = nodeMap(i+1,j+1,k);
-            mesh.elements(4,elementIdx) = nodeMap(i,j+1,k);   
-            mesh.elementTypes(elementIdx) = 13;          
-            groupIdx = smesh.elements(i,j,k,2);
-            groups(end+1,groupIdx) = elementIdx;                
-            elementIdx = elementIdx + 1;
-          end % if
-        end % if
-        if( size( smesh.elements , 4 ) >= 3 )        
-          if( smesh.elements(i,j,k,3) ~= 0 )
-            % yz boundary surface (i,j,k,3).
-            mesh.elements(1,elementIdx) = nodeMap(i,j,k);
-            mesh.elements(2,elementIdx) = nodeMap(i,j+1,k);
-            mesh.elements(3,elementIdx) = nodeMap(i,j+1,k+1);
-            mesh.elements(4,elementIdx) = nodeMap(i,j,k+1);    
-            mesh.elementTypes(elementIdx) = 13;      
-            groupIdx = smesh.elements(i,j,k,3);
-            groups(end+1,groupIdx) = elementIdx;
-            elementIdx = elementIdx + 1;
-          end %if
-        end % if 
-        if( size( smesh.elements , 4 ) >= 4 )
-          if( smesh.elements(i,j,k,4) ~= 0 )
-            % zx boundary surface (i,j,k,4).
-            mesh.elements(1,elementIdx) = nodeMap(i,j,k);
-            mesh.elements(2,elementIdx) = nodeMap(i+1,j,k);
-            mesh.elements(3,elementIdx) = nodeMap(i+1,j,k+1);
-            mesh.elements(4,elementIdx) = nodeMap(i,j,k+1);  
-            mesh.elementTypes(elementIdx) = 13;            
-            groupIdx = smesh.elements(i,j,k,4);
-            groups(end+1,groupIdx) = elementIdx;
-            elementIdx = elementIdx + 1;
-          end %if
-        end % if
-        if( size( smesh.elements , 4 ) >= 5 )
-          if( smesh.elements(i,j,k,5) ~= 0 )
-            % x edge (i,j,k,5).
-            mesh.elements(1,elementIdx) = nodeMap(i,j,k);
-            mesh.elements(2,elementIdx) = nodeMap(i+1,j,k);  
-            mesh.elementTypes(elementIdx) = 1;            
-            groupIdx = smesh.elements(i,j,k,5);
-            groups(end+1,groupIdx) = elementIdx;
-            elementIdx = elementIdx + 1;
-          end % if           
-        end % if
-        if( size( smesh.elements , 4 ) >= 6 )
-          if( smesh.elements(i,j,k,6) ~= 0 )
-            % y edge (i,j,k,6).
-            mesh.elements(1,elementIdx) = nodeMap(i,j,k);
-            mesh.elements(2,elementIdx) = nodeMap(i,j+1,k);  
-            mesh.elementTypes(elementIdx) = 1;            
-            groupIdx = smesh.elements(i,j,k,6);
-            groups(end+1,groupIdx) = elementIdx;
-            elementIdx = elementIdx + 1;
-          end % if           
-        end % if
-        if( size( smesh.elements , 4 ) >= 7 )
-          if( smesh.elements(i,j,k,7) ~= 0 )
-            % z edge (i,j,k,7).
-            mesh.elements(1,elementIdx) = nodeMap(i,j,k);
-            mesh.elements(2,elementIdx) = nodeMap(i,j,k+1);  
-            mesh.elementTypes(elementIdx) = 1;            
-            groupIdx = smesh.elements(i,j,k,7);
-            groups(end+1,groupIdx) = elementIdx;
-            elementIdx = elementIdx + 1;
-          end % if           
-        end % if
-      end % for
-    end % for
-  end % for 
-  mesh.elements = sparse( mesh.elements );
+  % Iterate over groups.
+  elementIdx = 0;
+  nextElemIdxInGroup = zeros( mesh.numGroups );
+  for groupIdx=1:mesh.numGroups
 
-  % Assemble groups.
-  for groupIdx=1:smesh.numGroups
-    groupVec = unique( nonzeros( groups(:,groupIdx) ) );
-    mesh.groups(1:length(groupVec),groupIdx) = groupVec;
-  end % for
-  mesh.groups = sparse( mesh.groups );
+    % Find implicit flattened cell index of all entities belonging to current group.
+    flatCellIdx = sub2ind( [ Nx , Ny , Nz ] , smesh.groups{groupIdx}(:,1) , smesh.groups{groupIdx}(:,2) , smesh.groups{groupIdx}(:,3) );
+    thisNumElements = length( flatCellIdx );
+    if( thisNumElements == 0 ) 
+      continue;
+    end % if
+    
+    % Create element indices for new elements.
+    thisElemIdx = elementIdx + (1:thisNumElements);
+
+    % Find entity types of all entities.
+    entityTypes = sub2ind( [ 2 , 2 , 2 ] , 1 + smesh.groups{groupIdx}(:,4) - smesh.groups{groupIdx}(:,1) , ...
+                                           1 + smesh.groups{groupIdx}(:,5) - smesh.groups{groupIdx}(:,2) , ...
+                                           1 + smesh.groups{groupIdx}(:,6) - smesh.groups{groupIdx}(:,3) );
+
+    % Find element types.
+    thisElemType = unique( elemTypes( unique( entityTypes ) ) );
+    if( length( thisElemType ) ~= 1 )
+      error( 'Mixed element types in group %s invalid' , smesh.groupNames{groupIdx} );
+    end % if
+    
+    % Get implicit stencils for entities.
+    thisNumVertex = elementTypesData( thisElemType , 1 ); 
+    thisStencils = implicitStencil(entityTypes,1:thisNumVertex);
+
+    % Find implicit flattened index of all vertices belonging to all entities.
+    flatVertexIdx = bsxfun( @plus , flatCellIdx , thisStencils );
+    
+    % Mark used vertices.
+    isNodeUsed(flatVertexIdx(:)) = true;
+    
+    % Add elements to element list.
+    mesh.elements(1:size(flatVertexIdx,2),thisElemIdx) = flatVertexIdx';
+    mesh.elementTypes(thisElemIdx) = thisElemType;
+    
+    % Add element indices to group.
+    mesh.groups((nextElemIdxInGroup(groupIdx)+(1:thisNumElements))  , groupIdx ) = thisElemIdx';
+    nextElemIdxInGroup(groupIdx) = nextElemIdxInGroup(groupIdx) + thisNumElements;
+    elementIdx = elementIdx + thisNumElements; 
+
+  end % for groupIdx
+
+  % Find used nodes and map to contiguous node number starting at 1.
+  flatNodeIdx = find( isNodeUsed );
+  mesh.numNodes = length( flatNodeIdx );
+  [ i , j , k ] = ind2sub( [ Nx , Ny , Nz ] , flatNodeIdx );
+  mesh.nodes = [ x(i) ; y(j) ; z(k) ];
+
+  % Remap node indices in elements.
+  nodeMap(flatNodeIdx) = 1:length(flatNodeIdx);
+  for elementIdx=1:mesh.numElements
+    numVertex = elementTypesData( mesh.elementTypes(elementIdx) , 1 ); 
+    mesh.elements(1:numVertex,elementIdx) = nodeMap( mesh.elements(1:numVertex,elementIdx) )';
+    %assert( all( mesh.elements((numVertex+1):8,elementIdx) == 0 ) );
+    %mesh.elements((numVertex+1):8,elementIdx) = 0;
+  end %for
+
+  %mesh.elements = sparse( mesh.elements );
+  %mesh.groups = sparse( mesh.groups );
 
 end % function

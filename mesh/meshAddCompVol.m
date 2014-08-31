@@ -38,34 +38,41 @@ function [ smesh ] = meshAddCompVol( smesh )
 % Date: 16/08/2014
 % Version 1.0.0
 
-  % Add computational volume groups.
-  idxCompVolXLO = smesh.numGroups + 1;
-  smesh.groupNames{idxCompVolXLO} = 'CompVolumeXLO';
-  idxCompVolXHI = smesh.numGroups + 2;
-  smesh.groupNames{idxCompVolXHI} = 'CompVolumeXHI';
-  idxCompVolYLO = smesh.numGroups + 3;
-  smesh.groupNames{idxCompVolYLO} = 'CompVolumeYLO';
-  idxCompVolYHI = smesh.numGroups + 4;
-  smesh.groupNames{idxCompVolYHI} = 'CompVolumeYHI';
-  idxCompVolZLO = smesh.numGroups + 5;
-  smesh.groupNames{idxCompVolZLO} = 'CompVolumeZLO';
-  idxCompVolZHI = smesh.numGroups + 6;
-  smesh.groupNames{idxCompVolZHI} = 'CompVolumeZHI';
+  Nx = length( smesh.lines.x );
+  Ny = length( smesh.lines.y );
+  Nz = length( smesh.lines.z );
+  i = 1:Nx;
+  j = 1:Ny;
+  k = 1:Nz;
+  [ ii , jj , kk ] = meshgrid( 1 , j(1:Ny-1) , k(1:Nz-1) );
+  smesh.numGroups = smesh.numGroups + 1;
+  smesh.groupTypes(smesh.numGroups) = 2;
+  smesh.groupNames{smesh.numGroups} = 'CV_XLO';
+  smesh.groups{smesh.numGroups} = [ ii(:) , jj(:) , kk(:) , ii(:) , jj(:) + 1 , kk(:) + 1 ];
+  [ ii , jj , kk ] = meshgrid( Nx , j(1:Ny-1) , k(1:Nz-1) );
+  smesh.numGroups = smesh.numGroups + 1;
+  smesh.groupTypes(smesh.numGroups) = 2;
+  smesh.groupNames{smesh.numGroups} = 'CV_XHI';
+  smesh.groups{smesh.numGroups} = [ ii(:) , jj(:) , kk(:) , ii(:) , jj(:) + 1 , kk(:) + 1 ];
+  [ ii , jj , kk ] = meshgrid( i(1:Nx-1) , 1 , k(1:Nz-1) );
+  smesh.numGroups = smesh.numGroups + 1;
+  smesh.groupTypes(smesh.numGroups) = 2;
+  smesh.groupNames{smesh.numGroups} = 'CV_YLO';
+  smesh.groups{smesh.numGroups} = [ ii(:) , jj(:) , kk(:) , ii(:) + 1 , jj(:) , kk(:) + 1 ];
+  [ ii , jj , kk ] = meshgrid( i(1:Nx-1) , Ny , k(1:Nz-1) );
+  smesh.numGroups = smesh.numGroups + 1;
+  smesh.groupTypes(smesh.numGroups) = 2;
+  smesh.groupNames{smesh.numGroups} = 'CV_YHI';
+  smesh.groups{smesh.numGroups} = [ ii(:) , jj(:) , kk(:) , ii(:) + 1 , jj(:) , kk(:) + 1 ];  
+  [ ii , jj , kk ] = meshgrid( i(1:Nx-1) , j(1:Ny-1) , 1 );
+  smesh.numGroups = smesh.numGroups + 1;
+  smesh.groupTypes(smesh.numGroups) = 2;
+  smesh.groupNames{smesh.numGroups} = 'CV_ZLO';
+  smesh.groups{smesh.numGroups} = [ ii(:) , jj(:) , kk(:) , ii(:) + 1 , jj(:) + 1 , kk(:) ];
+  [ ii , jj , kk ] = meshgrid( i(1:Nx-1) , j(1:Ny-1) , Nz );
+  smesh.numGroups = smesh.numGroups + 1;
+  smesh.groupTypes(smesh.numGroups) = 2;
+  smesh.groupNames{smesh.numGroups} = 'CV_ZHI';
+  smesh.groups{smesh.numGroups} = [ ii(:) , jj(:) , kk(:) , ii(:) + 1 , jj(:) + 1 , kk(:) ];
   
-  smesh.groupTypes(idxCompVolXLO:idxCompVolZHI) = 2;
-  smesh.numGroups = smesh.numGroups + 6;
-
-  % ZLO plane.
-  smesh.elements(1:end-1,1:end-1,1,2) = idxCompVolZLO;
-  % ZHI plane.
-  smesh.elements(1:end-1,1:end-1,end,2) = idxCompVolZHI;
-  % YLO plane.
-  smesh.elements(1:end-1,1,1:end-1,4) = idxCompVolYLO;
-  % YHI plane.
-  smesh.elements(1:end-1,end,1:end-1,4) = idxCompVolYHI;
-  % XLO plane.
-  smesh.elements(1,1:end-1,1:end-1,3) = idxCompVolXLO;
-  % XHI plane.
-  smesh.elements(end,1:end-1,1:end-1,3) = idxCompVolXHI;
-
 end % function

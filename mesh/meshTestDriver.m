@@ -43,6 +43,9 @@ function meshTestDriver( testName , withVulture )
   times(1) = toc();
   fprintf( '(T) Total mesh read time  %.2f s\n' , times(1) ); 
 
+  % Save the unstructured mesh.
+  meshSaveMesh( [ testName , '_input_mesh' , '.mat' ] , mesh );
+
   % Set meshing options using function is test source directory.
   [ groupNamesToMap , options ] = feval( [ 'meshTest' , testName ] , mesh );
 
@@ -51,8 +54,6 @@ function meshTestDriver( testName , withVulture )
   [ lines ] = meshCreateLines( mesh , groupNamesToMap , options );
   times(2) = toc();
   fprintf( '(T) Total mesh line creation time %.2f s\n' , times(2) ); 
-
-  % meshWriteLines2Gmsh( 'lines.msh' , lines , mesh );
    
   % Map groups onto structured mesh.
   tic();
@@ -60,17 +61,17 @@ function meshTestDriver( testName , withVulture )
   times(3) = toc();
   fprintf( '(T) Total mesh mapping time %.2f s\n' , times(3) ); 
   
-  % Convert structured mesh into unstructured format.
+  % Save the structured mesh. 
   tic();
-  [ unmesh ] = meshSmesh2UnmeshFast( smesh );
-  times(4) = toc() ;
-  fprintf( '(T) Total structured to unstructured mesh conversion time %.2f s\n' , times(4) ); 
-  
-  % Save structured mesh. 
-  tic();
-  meshSaveMesh( [ testName , '.mat' ] , smesh );
+  meshSaveMesh( [ testName , '_structured_mesh' , '.mat' ] , smesh );
   times(5) = toc();
   fprintf( '(T) Total structured mesh save time %.2f s\n' , times(5) ); 
+  
+  % Convert structured mesh into unstructured format.
+  tic();
+  [ unmesh ] = meshSmesh2Unmesh( smesh );
+  times(4) = toc() ;
+  fprintf( '(T) Total structured to unstructured mesh conversion time %.2f s\n' , times(4) ); 
   
   % Export structured mesh in Gmsh format.
   tic();
@@ -87,18 +88,22 @@ function meshTestDriver( testName , withVulture )
     times(7) = toc();
     fprintf( '(T) Total vulture mesh export time  %.2f s\n' , times(7) );     
 
+  else
+  
+    times(7) = NaN;
+      
   end % if
   
   % Write timings to file.
   fh_timing = fopen( [ testName , '.times' ] , 'w' );
   labels = { '#elements' , '   #cells' , '   Read' , '  Lines' , '    Map' , '   S2Un' , '   Save' , '  Write' , '  Vult.'  };
-  fprintf( fh_timing , '#' ); 
+  fprintf( fh_timing , '# ' ); 
   for labelIdx=1:length( labels ) 
-   fprintf( fh_timing , '%8s ' , labels{labelIdx} ); 
+   fprintf( fh_timing , '%9s ' , labels{labelIdx} ); 
   end % for  
   fprintf( fh_timing , '\n' );
-  fprintf( fh_timing , '%8d %8d ' , mesh.numElements , length( lines.x ) * length( lines.y ) * length( lines.z ) );  
-  fprintf( fh_timing , '%8.2f ' , times );   
+  fprintf( fh_timing , '  %9d %9d ' , mesh.numElements , length( lines.x ) * length( lines.y ) * length( lines.z ) );  
+  fprintf( fh_timing , '%9.3f ' , times );   
   fprintf( fh_timing , '\n' );
   fclose( fh_timing );
 

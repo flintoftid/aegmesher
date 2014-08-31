@@ -608,36 +608,45 @@ Modelled on AMELET HDF Version 1.5.x specification [AMELET1.5].
 Appendix B: Structured mesh data structure
 ==========================================  
 
-% smesh - structure containing a structured mesh:
+% smesh - structure containing a structured mesh modelled on the AMELET-HDF format [1]:
 %
-%         .dimension          - integer, dimension of mesh: 1, 2 or 3.
-%         .x()                - real(Nx) vector of mesh line coordinates in x-direction.
-%         .y()                - real(Ny) vector of mesh line coordinates in y-direction.
-%         .z()                - real(Nz) vector of mesh line coordinates in z-direction.
-%         .elements()         - integer(Nx,Ny,Nz,4) array of cell entities. element(i,j,k,m) 
-%                               gives the group index (into the groups array) of the m-th 
-%                               entity in cell (i,j,k). m takes the values:
+%        .dimension         - integer, dimension of mesh: 1, 2 or 3.
+%        .x()               - real(Nx) vector of mesh line coordinates in x-direction.
+%        .y()               - real(Ny) vector of mesh line coordinates in y-direction.
+%        .z()               - real(Nz) vector of mesh line coordinates in z-direction.
+%        .numGroups         - integer, number of groups.
+%        .groupNames{}      - string{numGroups}, cell array of group names.
+%        .groupTypes()      - integer(numGroups), array of AMELET-HDF group types:
 %
-%                               1 - cell's volume
-%                               2 - cell's lower xy face
-%                               3 - cell's lower yz face
-%                               4 - cell's lower zx face
-%                               5 - cell's lower xy edge
-%                               6 - cell's lower yz edge
-%                               7 - cell's lower zx edge
-%                               8 - cell's lower node
+%                             0 - node
+%                             1 - edge
+%                             2 - face
+%                             3 - volume
 %
-%         .numGroups         - integer, number of groups.
-%         .groupNames{}      - string{numGroups}, cell array of group names.
-%         .groupTypes()      - integer(numGroups), array of AMELET-HDF group types:
+%        .groups{}          - cell array of bounding boxes of structured mesh elements for
+%                             each group. groups{groupIdx} is a nx3 or nx6 array of structured mesh
+%                             indices of the bounding box corners of the elements in the group. For
+%                             node groups only one coordinate is required (BBox is degenerate).
+%                              
+%                             For group type 0 (node): groups{groupIdx} is numNodesInGroup x 3 array
+%                                                      groups{groupIdx}(nodeIdx,coordIdx)
+%                                                      coordIdx = 1: i
+%                                                      coordIdx = 2: j
+%                                                      coordIdx = 3: k
 %
-%                              0 - node
-%                              1 - edge
-%                              2 - face
-%                              3 - volume
-%
-%         .numGroupGroups    - integer, number of groups of groups.
-%         .groupGroupNames{} - string{numGroupGroups}, cell array of group group names.
-%         .groupGroups()     - integer(var,numGroupGroup), sparse array of group of group indices.
-%                              groupGroup(i,j) gives the i-th index (into the groups array) of the
-%                              j-th group of groups. Hierarchical group of groups are NOT SUPPORTED.
+%                             For all other group types: groups{groupIdx} is numBBoxInGroup x 6 array
+%                                                        groups{groupIdx}(bboxIdx,coordIdx)
+%                                                        coordIdx = 1: ilo
+%                                                        coordIdx = 2: jlo
+%                                                        coordIdx = 3: klo
+%                                                        coordIdx = 4: ihi
+%                                                        coordIdx = 5: jhi
+%                                                        coordIdx = 6: khi  
+%                                                        Boundng box can be single element (edge,face,cell)
+%                                                        or multiple elements (line,surface,volume).
+%              
+%        .numGroupGroups    - integer, number of groups of groups.
+%        .groupGroupNames{} - string{numGroupGroups}, cell array of group group names.
+%        .groupGroups()     - integer(var,numGroupGroup), sparse array of group of group indices.
+%                             groupGroup(i,j) gives the i-th index (into the groups array) of the
+%                             j-th group of groups. Hierarchical group of groups are NOT SUPPORTED.

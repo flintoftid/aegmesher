@@ -20,40 +20,48 @@ function [ smesh ] = meshMapGroups( mesh , groupNamesToMap , lines , options )
 %
 % Outputs:
 %
-% smesh - structure containing a structured mesh:
+% smesh - structure containing a structured mesh modelled on the AMELET-HDF format [1]:
 %
-%         .dimension          - integer, dimension of mesh: 1, 2 or 3.
-%         .x()                - real(Nx) vector of mesh line coordinates in x-direction.
-%         .y()                - real(Ny) vector of mesh line coordinates in y-direction.
-%         .z()                - real(Nz) vector of mesh line coordinates in z-direction.
-%         .elements()         - integer(Nx,Ny,Nz,4) array of cell entities. element(i,j,k,m) 
-%                               gives the group index (into the groups array) of the m-th 
-%                               entity in cell (i,j,k). m takes the values:
+%        .dimension         - integer, dimension of mesh: 1, 2 or 3.
+%        .x()               - real(Nx) vector of mesh line coordinates in x-direction.
+%        .y()               - real(Ny) vector of mesh line coordinates in y-direction.
+%        .z()               - real(Nz) vector of mesh line coordinates in z-direction.
+%        .numGroups         - integer, number of groups.
+%        .groupNames{}      - string{numGroups}, cell array of group names.
+%        .groupTypes()      - integer(numGroups), array of AMELET-HDF group types:
 %
-%                               1 - cell's volume
-%                               2 - cell's lower xy face
-%                               3 - cell's lower yz face
-%                               4 - cell's lower zx face
-%                               5 - cell's lower x edge
-%                               6 - cell's lower y edge
-%                               7 - cell's lower z edge
-%                               8 - cell's lower node
+%                             0 - node
+%                             1 - edge
+%                             2 - face
+%                             3 - volume
 %
-%         .numGroups         - integer, number of groups.
-%         .groupNames{}      - string{numGroups}, cell array of group names.
-%         .groupTypes()      - integer(numGroups), array of AMELET-HDF group types:
+%        .groups{}          - cell array of bounding boxes of structured mesh elements for
+%                             each group. groups{groupIdx} is a nx3 or nx6 array of structured mesh
+%                             indices of the bounding box corners of the elements in the group. For
+%                             node groups only one coordinate is required (BBox is degenerate).
+%                              
+%                             For group type 0 (node): groups{groupIdx} is numNodesInGroup x 3 array
+%                                                      groups{groupIdx}(nodeIdx,coordIdx)
+%                                                      coordIdx = 1: i
+%                                                      coordIdx = 2: j
+%                                                      coordIdx = 3: k
 %
-%                              0 - node
-%                              1 - edge
-%                              2 - face
-%                              3 - volume
-%
-%         .numGroupGroups    - integer, number of groups of groups.
-%         .groupGroupNames{} - string{numGroupGroups}, cell array of group group names.
-%         .groupGroups()     - integer(var,numGroupGroup), sparse array of group of group indices.
-%                              groupGroup(i,j) gives the i-th index (into the groups array) of the
-%                              j-th group of groups. Hierarchical group of groups are NOT SUPPORTED.
-%
+%                             For all other group types: groups{groupIdx} is numBBoxInGroup x 6 array
+%                                                        groups{groupIdx}(bboxIdx,coordIdx)
+%                                                        coordIdx = 1: ilo
+%                                                        coordIdx = 2: jlo
+%                                                        coordIdx = 3: klo
+%                                                        coordIdx = 4: ihi
+%                                                        coordIdx = 5: jhi
+%                                                        coordIdx = 6: khi  
+%                                                        Boundng box can be single element (edge,face,cell)
+%                                                        or multiple elements (line,surface,volume).
+%              
+%        .numGroupGroups    - integer, number of groups of groups.
+%        .groupGroupNames{} - string{numGroupGroups}, cell array of group group names.
+%        .groupGroups()     - integer(var,numGroupGroup), sparse array of group of group indices.
+%                             groupGroup(i,j) gives the i-th index (into the groups array) of the
+%                             j-th group of groups. Hierarchical group of groups are NOT SUPPORTED.
 
 % 
 % This file is part of aegmesher.
@@ -79,6 +87,16 @@ function [ smesh ] = meshMapGroups( mesh , groupNamesToMap , lines , options )
 % Date: [FIXME]
 % Version: 1.0.0
 
+  % Stencils for structured mesh elemental bounding box types.
+  bboxStencils = [ 0 , 0 , 0 ; ....   % Node
+                   1 , 0 , 0 ; ...    % x-edge
+                   0 , 1 , 0 ; ...    % y-edge  
+                   0 , 0 , 1 ; ...    % z-edge
+                   1 , 1 , 0 ; ...    % xy-face
+                   0 , 1 , 1 ; ...    % yz-face  
+                   1 , 0 , 1 ; ...    % zx-face                   
+                   1 , 1 , 1 ];       % cell   
+                   
   % Get group indices of groups to be mapped.
   if( isempty( groupNamesToMap ) )
     groupNamesToMap = mesh.groupNames;
@@ -97,24 +115,13 @@ function [ smesh ] = meshMapGroups( mesh , groupNamesToMap , lines , options )
   groupIdxToMap = groupIdxToMap(idx);
   groupNamesToMap = groupNamesToMap(idx);
   groupTypesToMap = mesh.groupTypes(groupIdxToMap);
-  
-  % Determine size of integer required to hold largest group index. 
-  if( numGroupsToMap < 2^8 - 1 )
-    cellTypeStr = 'int8';
-  elseif( numGroupsToMap < 2^16 - 1 )
-    cellTypeStr = 'int16';
-  elseif( numGroupsToMap < 2^32 - 1 )
-    cellTypeStr = 'int32';
-  else
-    error( 'Too many groups to mesh' );
-  end % if
 
-  fprintf( 'Mapping %d groups using "%s" type array\n' , numGroupsToMap , cellTypeStr );
+  fprintf( 'Mapping %d groups\n' , numGroupsToMap );
       
   % Create empty structured mesh.  
   smesh.lines = lines;
   smesh.dimension = mesh.dimension;
-  smesh.elements = zeros( length( lines.x ) , length( lines.y ) , length( lines.z ) , 7 , cellTypeStr );
+  smesh.groups = {};
   smesh.numGroups = 0;
   smesh.groupNames = {};
   smesh.groupTypes = [];
@@ -176,10 +183,12 @@ function [ smesh ] = meshMapGroups( mesh , groupNamesToMap , lines , options )
         % Cells at imax, jmax, kmax will not be used for volumetric objects.
         smesh.numGroups = smesh.numGroups + 1;
         isInside = meshVolumeMapGroup( mesh , fbvh , elementMap , lines , objBBox , idxBBox , thisOptions );
+        % Add to structured mesh.
         flatIdx = find( isInside );
         [ i , j , k ] = ind2sub( size( isInside ) , flatIdx );
-        idx = sub2ind( size( smesh.elements ) , imin + i - 1 , jmin + j - 1 , kmin + k - 1 , ones( size( i ) )  );
-        smesh.elements(idx) = smesh.numGroups;
+        smesh.groups{smesh.numGroups} = [ imin + i - 1 , jmin + j - 1 , kmin + k - 1 , ...
+          imin + i - 1 + bboxStencils(8,1) , jmin + j - 1 + bboxStencils(8,2) , kmin + k - 1 + bboxStencils(8,3) ];
+        clear isInside flatIdx i j k
         % Relabel group as volumetric on the structured mesh.
         smesh.groupTypes(smesh.numGroups) = 3;
         smesh.groupNames{smesh.numGroups} = thisGroupName;
@@ -193,18 +202,24 @@ function [ smesh ] = meshMapGroups( mesh , groupNamesToMap , lines , options )
       end % if
       % Map the group. Use the new group index in the structured mesh.
       [ isXY , isYZ , isZX ] = meshSurfaceMapGroup( mesh , fbvh , elementMap , lines , objBBox , idxBBox , thisOptions );
-      flatIdx = find( isXY );
-      [ i , j , k ] = ind2sub( size( isXY ) , flatIdx );
-      idx = sub2ind( size( smesh.elements ) , imin + i - 1 , jmin + j - 1 , kmin + k - 1 , 2 * ones( size( i ) )  );
-      smesh.elements(idx) = smesh.numGroups;    
+      % If third dimension is 1 size only returns two dimension!
+      arraySize = [ size( isXY , 1 ) , size( isXY , 2 ) , size( isXY , 3 ) ];
+      % Add to structured mesh.
+      flatIdx = find( isXY );   
+      [ iXY , jXY , kXY ] = ind2sub( arraySize , flatIdx );    
+      bboxXY = [ imin + iXY - 1 , jmin + jXY - 1 , kmin + kXY - 1 , ...
+        imin + iXY - 1 + bboxStencils(5,1) , jmin + jXY - 1 + bboxStencils(5,2) , kmin + kXY - 1 + bboxStencils(5,3) ];
       flatIdx = find( isYZ );
-      [ i , j , k ] = ind2sub( size( isYZ ) , flatIdx );
-      idx = sub2ind( size( smesh.elements ) , imin + i - 1 , jmin + j - 1 , kmin + k - 1 , 3 * ones( size( i ) )  );
-      smesh.elements(idx) = smesh.numGroups;  
+      [ iYZ , jYZ , kYZ ] = ind2sub( arraySize , flatIdx );  
+      bboxYZ = [ imin + iYZ - 1 , jmin + jYZ - 1 , kmin + kYZ - 1 , ...
+        imin + iYZ - 1 + bboxStencils(6,1) , jmin + jYZ - 1 + bboxStencils(6,2) , kmin + kYZ - 1 + bboxStencils(6,3) ]; 
       flatIdx = find( isZX );
-      [ i , j , k ] = ind2sub( size( isZX ) , flatIdx );
-      idx = sub2ind( size( smesh.elements ) , imin + i - 1 , jmin + j - 1 , kmin + k - 1 , 4 * ones( size( i ) )  );
-      smesh.elements(idx) = smesh.numGroups;  
+      [ iZX , jZX , kZX ] = ind2sub( arraySize , flatIdx );
+      bboxZX = [ imin + iZX - 1 , jmin + jZX - 1 , kmin + kZX - 1 , ...
+        imin + iZX - 1 + bboxStencils(7,1) , jmin + jZX - 1 + bboxStencils(7,2) , kmin + kZX - 1 + bboxStencils(7,3) ];      
+      smesh.groups{smesh.numGroups} = [ bboxXY ; bboxYZ ; bboxZX ];
+      clear isXY isYZ isZX flatIdx iXY jXY kXY iYZ jYZ kYZ iZX jZX kZX bboxXY bboxYZ bboxZX
+      % Relabel group as surface on the structured mesh.
       smesh.groupTypes(smesh.numGroups) = 2;
       smesh.groupNames{smesh.numGroups} = thisGroupName;
     case 'CLOSED_SURFACE'
@@ -223,18 +238,24 @@ function [ smesh ] = meshMapGroups( mesh , groupNamesToMap , lines , options )
         smesh.numGroups = smesh.numGroups + 1;
         isInside = meshVolumeMapGroup( mesh , fbvh , elementMap , lines , objBBox , idxBBox , thisOptions );
         % Remap as surface object.
-        flatIdx = find( isXY );
-        [ i , j , k ] = ind2sub( size( isXY ) , flatIdx );
-        idx = sub2ind( size( smesh.elements ) , imin + i - 1 , jmin + j - 1 , kmin + k - 1 , 2 * ones( size( i ) ) );
-        smesh.elements(idx) = smesh.numGroups;    
+        [ isXY , isYZ , isZX ] = meshVolumeGroup2SurfaceGroup( isInside , idxBBox , thisOptions );
+        % If third dimension is 1 size only returns two dimension!
+        arraySize = [ size( isXY , 1 ) , size( isXY , 2 ) , size( isXY , 3 ) ];
+        % Add to structured mesh.
+        flatIdx = find( isXY );   
+        [ iXY , jXY , kXY ] = ind2sub(arraySize , flatIdx );    
+        bboxXY = [ imin + iXY - 1 , jmin + jXY - 1 , kmin + kXY - 1 , ...
+          imin + iXY - 1 + bboxStencils(5,1) , jmin + jXY - 1 + bboxStencils(5,2) , kmin + kXY - 1 + bboxStencils(5,3) ];
         flatIdx = find( isYZ );
-        [ i , j , k ] = ind2sub( size( isYZ ) , flatIdx );
-        idx = sub2ind( size( smesh.elements ) , imin + i - 1 , jmin + j - 1 , kmin + k - 1 , 3 * ones( size( i ) ) );
-        smesh.elements(idx) = smesh.numGroups;  
+        [ iYZ , jYZ , kYZ ] = ind2sub( arraySize , flatIdx );  
+        bboxYZ = [ imin + iYZ - 1 , jmin + jYZ - 1 , kmin + kYZ - 1 , ...
+          imin + iYZ - 1 + bboxStencils(6,1) , jmin + jYZ - 1 + bboxStencils(6,2) , kmin + kYZ - 1 + bboxStencils(6,3) ]; 
         flatIdx = find( isZX );
-        [ i , j , k ] = ind2sub( size( isZX ) , flatIdx );
-        idx = sub2ind( size( smesh.elements ) , imin + i - 1 , jmin + j - 1 , kmin + k - 1 , 4 * ones( size( i ) ) );
-        smesh.elements(idx) = smesh.numGroups;          
+        [ iZX , jZX , kZX ] = ind2sub( arraySize , flatIdx );
+        bboxZX = [ imin + iZX - 1 , jmin + jZX - 1 , kmin + kZX - 1 , ...
+          imin + iZX - 1 + bboxStencils(7,1) , jmin + jZX - 1 + bboxStencils(7,2) , kmin + kZX - 1 + bboxStencils(7,3) ];      
+        smesh.groups{smesh.numGroups} = [ bboxXY ; bboxYZ ; bboxZX ];      
+        clear isXY isYZ isZX iXY jXY kXY iYZ jYZ kYZ iZX jZX kZX bboxXY bboxYZ bboxZX
         % Relabel group as surface on the structured mesh.
         smesh.groupTypes(smesh.numGroups) = 2;
         smesh.groupNames{smesh.numGroups} = thisGroupName;
@@ -248,23 +269,45 @@ function [ smesh ] = meshMapGroups( mesh , groupNamesToMap , lines , options )
       end % if
       % Map the group. Use the new group index in the structured mesh.
       [ isX , isY , isZ ] = meshLineMapGroup( mesh , thisGroupIdx , lines , objBBox , idxBBox , thisOptions );
-      flatIdx = find( isX );
-      [ i , j , k ] = ind2sub( size( isX ) , flatIdx );
-      idx = sub2ind( size( smesh.elements ) , imin + i - 1 , jmin + j - 1 , kmin + k - 1 , 5 * ones( size( i ) )  );
-      smesh.elements(idx) = smesh.numGroups;    
+      % If third dimension is 1 size only returns two dimension!
+      arraySize = [ size( isX , 1 ) , size( isX , 2 ) , size( isX , 3 ) ];
+      % Add to structured mesh.
+      flatIdx = find( isX );   
+      [ iX , jX , kX ] = ind2sub( arraySize , flatIdx );    
+      bboxX = [ imin + iX - 1 , jmin + jX - 1 , kmin + kX - 1 , ...
+        imin + iX - 1 + bboxStencils(2,1) , jmin + jX - 1 + bboxStencils(2,2) , kmin + kX - 1 + bboxStencils(2,3) ];
       flatIdx = find( isY );
-      [ i , j , k ] = ind2sub( size( isY ) , flatIdx );
-      idx = sub2ind( size( smesh.elements ) , imin + i - 1 , jmin + j - 1 , kmin + k - 1 , 6 * ones( size( i ) )  );
-      smesh.elements(idx) = smesh.numGroups;  
+      [ iY , jY , kY ] = ind2sub( arraySize , flatIdx );  
+      bboxY = [ imin + iY - 1 , jmin + jY - 1 , kmin + kY - 1 , ...
+        imin + iY - 1 + bboxStencils(3,1) , jmin + jY - 1 + bboxStencils(3,2) , kmin + kY - 1 + bboxStencils(3,3) ]; 
       flatIdx = find( isZ );
-      [ i , j , k ] = ind2sub( size( isZ ) , flatIdx );
-      idx = sub2ind( size( smesh.elements ) , imin + i - 1 , jmin + j - 1 , kmin + k - 1 , 7 * ones( size( i ) )  );
-      smesh.elements(idx) = smesh.numGroups;
+      [ iZ , jZ , kZ ] = ind2sub( arraySize , flatIdx );
+      bboxZ = [ imin + iZ - 1 , jmin + jZ - 1 , kmin + kZ - 1 , ...
+        imin + iZ - 1 + bboxStencils(4,1) , jmin + jZ - 1 + bboxStencils(4,2) , kmin + kZ - 1 + bboxStencils(4,3) ];      
+      smesh.groups{smesh.numGroups} = [ bboxX ; bboxY ; bboxZ ];
+      clear isX isY isZ iX jX kX iY jY kY iZ jZ kZ bboxX bboxY bboxZ
+      % Relabel group as line on the structured mesh.
       smesh.groupTypes(smesh.numGroups) = 1;
       smesh.groupNames{smesh.numGroups} = thisGroupName;
     case 'POINT'
       fprintf( '  Group is a point object\n' );
       fprintf( '  *** Ignoring unsupported object type %s ***\n' , thisOptions.type );
+      %smesh.numGroups = smesh.numGroups + 1;
+      %% Point object - mesh group type must be a node. 
+      %if( mesh.groupTypes(thisGroupIdx) ~= 0 )
+      %  error( 'Cannot map group type with types other than 0 (line) as a point object' ,  mesh.groupTypes(groupIdx) );
+      %end % if
+      %% Map the group. Use the new group index in the structured mesh.
+      %[ isNode ] = meshNodeMapGroup( mesh , thisGroupIdx , lines , objBBox , idxBBox , thisOptions );      
+      %% Add to structured mesh.
+      %bboxType = 1;                              
+      %flatIdx = find( isNode );
+      %[ i , j , k ] = ind2sub( size( isNode ) , flatIdx );
+      %smesh.groups{smesh.numGroups} = [ imin + i - 1 , jmin + j - 1 , kmin + k - 1 ];      
+      %% Relabel group as node on the structured mesh.
+      %smesh.groupTypes(smesh.numGroups) = 0;
+      %smesh.groupNames{smesh.numGroups} = thisGroupName;    
+      %clear isNode i j k flatIdx
     case 'BBOX'
       fprintf( '  Not mapping BBOX type group\n' );
     otherwise
@@ -273,4 +316,7 @@ function [ smesh ] = meshMapGroups( mesh , groupNamesToMap , lines , options )
 
   end % for
   
+  % Add computational volume to mesh.
+  %[ smesh ] = meshAddCompVol( smesh );
+
 end % function

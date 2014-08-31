@@ -51,6 +51,9 @@ function meshWriteVulture( mshFileName , smesh , options )
 % Note - mesh line indices have to be reduced by 1 since Vulture uses zero 
 % based arrays!
 
+  % Directives for groupt types.
+  directiveString = { 'TW' , 'TB' , 'MB' } 
+  
   % Mesh lines.
   x = smesh.lines.x;
   y = smesh.lines.y;
@@ -88,6 +91,7 @@ function meshWriteVulture( mshFileName , smesh , options )
   % [FIXME] Better way to put in dummy source?
   fprintf( fout , 'EX  0 2 1 1 0 2 source EZ wf1 1.0\n' );
 
+  % Write out media types. 
   for groupIdx=1:smesh.numGroups
     switch( smesh.groupTypes(groupIdx) )
     case 3
@@ -101,109 +105,21 @@ function meshWriteVulture( mshFileName , smesh , options )
     end % switch
   end % for
 
-  % Handle material blocks if there exists a solid/ solid-surface object.
-  if( size( smesh.elements , 4 ) >= 1 )
-    numMB = length( find( smesh.elements(:,:,:,1) ~= 0 ) );
-    if( numMB > 0 )
-      for i = 1:size(smesh.elements,1)-1
-        for j = 1:size(smesh.elements,2)-1
-          for k = 1:size(smesh.elements,3)-1
-            if( smesh.elements(i,j,k,1) ~= 0 )
-              fprintf( fout , 'MB %d %d %d %d %d %d %s\n' , [ i , i + 1 , j , j + 1 , k , k + 1 ] - 1 , names{smesh.elements(i,j,k,1)} );
-            end % if
-          end % for
-        end % for
-      end % for
+  % Write out physical model selectors.
+  for groupIdx=1:smesh.numGroups
+    bboxes = smesh.groups{groupIdx};
+    groupType = smesh.groupTypes(groupIdx);
+    if( groupType == 0 )
+      continue;
     end % if
-  end %if
-  
-  % Handle TB if there exists a surface object.
-  if( size( smesh.elements , 4 ) >= 2 )
-    numTB = length( find( smesh.elements(:,:,:,2) ~= 0 ) );
-    if( numTB > 0 )
-      for i = 1:size(smesh.elements,1)-1
-        for j = 1:size(smesh.elements,2)-1
-          for k = 1:size(smesh.elements,3)
-            if( smesh.elements(i,j,k,2) ~= 0 )
-              fprintf( fout , 'TB %d %d %d %d %d %d %s\n' , [ i , i + 1 , j , j + 1 , k , k ] - 1 , names{smesh.elements(i,j,k,2)} );
-            end % if    
-          end % for
-        end % for
-      end % for
-    end % if
-  end %if 
-  if( size( smesh.elements , 4 ) >= 3 )   
-    numTB = length( find( smesh.elements(:,:,:,3) ~= 0 ) );
-    if( numTB > 0 )
-      for i = 1:size(smesh.elements,1)
-        for j = 1:size(smesh.elements,2)-1
-          for k = 1:size(smesh.elements,3)-1
-            if( smesh.elements(i,j,k,3) ~= 0 )
-              fprintf( fout , 'TB %d %d %d %d %d %d %s\n' , [ i , i , j , j + 1 , k , k + 1 ] - 1 , names{smesh.elements(i,j,k,3)} ); 
-            end % if
-          end % for
-        end % for
-      end % for
-    end % if
-  end %if
-  if( size( smesh.elements , 4 ) >= 4 )  
-    numTB = length( find( smesh.elements(:,:,:,4) ~= 0 ) );
-    if( numTB > 0 )
-      for i = 1:size(smesh.elements,1)-1
-        for j = 1:size(smesh.elements,2)
-          for k = 1:size(smesh.elements,3)-1
-            if( smesh.elements(i,j,k,4) ~= 0 )
-              fprintf( fout , 'TB %d %d %d %d %d %d %s\n' , [ i , i + 1 , j , j , k , k + 1 ] - 1 , names{smesh.elements(i,j,k,4)} );
-            end % if
-          end % for
-        end % for
-      end % for
-    end % if
-  end %if
-  
-  % Handle TW if there exists a line object.
-  if( size( smesh.elements , 4 ) >= 5 )
-    numTW = length( find( smesh.elements(:,:,:,5) ~= 0 ) );
-    if( numTW > 0 )
-      for i = 1:size(smesh.elements,1)-1
-        for j = 1:size(smesh.elements,2)-1
-          for k = 1:size(smesh.elements,3)
-            if( smesh.elements(i,j,k,5) ~= 0 )
-              fprintf( fout , 'TW %d %d %d %d %d %d %s\n' , [ i , i + 1 , j , j , k , k ] - 1 , names{smesh.elements(i,j,k,5)} );
-            end % if    
-          end % for
-        end % for
-      end % for
-    end % if
-  end %if 
-  if( size( smesh.elements , 4 ) >= 6 )
-    numTW = length( find( smesh.elements(:,:,:,6) ~= 0 ) );
-    if( numTW > 0 )
-      for i = 1:size(smesh.elements,1)-1
-        for j = 1:size(smesh.elements,2)-1
-          for k = 1:size(smesh.elements,3)
-            if( smesh.elements(i,j,k,6) ~= 0 )
-              fprintf( fout , 'TW %d %d %d %d %d %d %s\n' , [ i , i , j , j + 1 , k , k ] - 1 , names{smesh.elements(i,j,k,6)} );
-            end % if    
-          end % for
-        end % for
-      end % for
-    end % if
-  end %if 
-  if( size( smesh.elements , 4 ) >= 7 )
-    numTW = length( find( smesh.elements(:,:,:,7) ~= 0 ) );
-    if( numTW > 0 )
-      for i = 1:size(smesh.elements,1)-1
-        for j = 1:size(smesh.elements,2)-1
-          for k = 1:size(smesh.elements,3)
-            if( smesh.elements(i,j,k,7) ~= 0 )
-              fprintf( fout , 'TW %d %d %d %d %d %d %s\n' , [ i , i , j , j , k , k + 1 ] - 1 , names{smesh.elements(i,j,k,7)} );
-            end % if    
-          end % for
-        end % for
-      end % for
-    end % if
-  end %if 
+    for bboxIdx=1:size( bboxes , 1 )  
+      fprintf( fout , '%s %d %d %d %d %d %d %s\n' , directiveString{groupType} , ...
+               bboxes(bboxIdx,1) - 1 , bboxes(bboxIdx,4) - 1 , ...
+               bboxes(bboxIdx,2) - 1 , bboxes(bboxIdx,5) - 1 , ...
+               bboxes(bboxIdx,3) - 1 , bboxes(bboxIdx,6) - 1 , ...
+               names{groupIdx} );    
+    end % for bboxIdx
+  end % for groupIdx
 
   % [FIXME] Add dummy observber?
   % fprintf( fout , 'OP  0 2 1 1 0 2 output1 .....\n' );
