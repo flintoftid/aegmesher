@@ -136,11 +136,15 @@ function [ smesh ] = meshMapGroups( mesh , groupNamesToMap , lines , options )
     % Get this group's option structure.
     thisOptions = meshGetGroupOptions( thisGroupIdx , options );
 
-    % Create BVH for group's elements.
-    [ fbvh , elementMap ] = meshBuildFBVH( mesh , { thisGroupName } , thisOptions );
-
-    % Get AABB of group in physical units.
-    objBBox = fbvh(1).bbox;
+    if( strcmp( thisOptions.type , 'VOLUME' ) || strcmp( thisOptions.type , 'SURFACE' ) || strcmp( thisOptions.type , 'CLOSED_SURFACE' ) )
+      % Create BVH for group's elements.  
+      [ fbvh , elementMap ] = meshBuildFBVH( mesh , { thisGroupName } , thisOptions );
+      % Get AABB of group in physical units.
+      objBBox = fbvh(1).bbox;
+    else
+      objBBox = meshGetGroupAABB( mesh , thisGroupIdx );  
+    end % if
+    
     fprintf( '  Group AABB: [%g,%g,%g,%g,%g,%g]\n' , objBBox );
     
     % Determine minimally enclosing AABB of the group on the structured grid computational volume.

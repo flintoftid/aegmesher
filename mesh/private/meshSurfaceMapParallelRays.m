@@ -82,19 +82,28 @@ function [ isXY , unresolvedCells ] = ...
   numUnresolvedCells = 0;
   unresolvedCells = {};
 
+  % Transverse coordinates of cell centres.
+  x = 0.5 * ( xLocal(1:end-1) + xLocal(2:end) );
+  y = 0.5 * ( yLocal(1:end-1) + yLocal(2:end) );
+  zCellCentres = 0.5 * ( zLocal(1:(end-1)) + zLocal(2:end) );
+  
+  % Create finite ray along midpoints of cells from front to back face of object AABB. 
+  zOrigin = zLocal(1) - options.epsRayEnds
+  zDestination = zLocal(end) + options.epsRayEnds;
+  zDir = zDestination - zOrigin;
+  
+  % Ray parameter at face centres.
+  tFaceCentres = ( zLocal - zOrigin ) / zDir;
+
+  % Ray parameter at cell centres.
+  tCellCentres = ( zCellCentres - zOrigin ) / zDir;
+  
   % Loop over all cell centres in x and y directions.
-  for i=1:numCells(1)-1
-    for j=1:numCells(2)-1
-      % Transverse coordinates of cell centres.
-      x = 0.5 * ( xLocal(i) + xLocal(i+1) );
-      y = 0.5 * ( yLocal(j) + yLocal(j+1) );
-      % Create finite ray along midpoints of cells from front to back face of object AABB. 
-      zOrigin = [ x , y , zLocal(1) - options.epsRayEnds ];
-      zDestination = [ x , y , zLocal(end) + options.epsRayEnds ];
-      zDir = zDestination - zOrigin;
+  for j=1:numCells(2)-1
+    for i=1:numCells(1)-1
       % Permute coordinate to correct dimension for ray casting.
-      origin = circshift( zOrigin , [ 0 , dirShift ] );    
-      destination = circshift( zDestination , [ 0 , dirShift ] );
+      origin = circshift( [ x(i) , y(j) , zOrigin ] , [ 0 , dirShift ] );    
+      destination = circshift( [ x(i) , y(j) , zDestination ] , [ 0 , dirShift ] );
       dir = destination - origin;
       % Cast ray. Elements parallel to elements are discarded by meshIntersectFBVH but other types
       % of singularity will still be present.
@@ -103,12 +112,6 @@ function [ isXY , unresolvedCells ] = ...
       if( isempty( tIntersect ) )
         continue;
       end % if 
-      % Ray parameter at face centres.
-      tFaceCentres = ( zLocal - zOrigin(3) ) / zDir(3);
-      % Locations of cell centres.
-      zCellCentres = 0.5 * ( zLocal(1:(end-1)) + zLocal(2:end) );
-      % Ray parameter at cell centres.
-      tCellCentres = ( zCellCentres - zOrigin(3) ) / zDir(3);
       % Find number of intersections on each secondary grid egde (centred on face centres).
       if( length( tFaceCentres ) > 1 )
         [ numIntersections , ~ ] = hist( tIntersect , tFaceCentres );

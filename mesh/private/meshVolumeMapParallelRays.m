@@ -100,22 +100,28 @@ function [ isInside  ] = meshVolumeMapParallelRays( mesh , fbvh , elementMap , x
   numUnresolvedCells = 0;
   unresolvedCells = {};
 
-%format long e
-  % Loop over all cell centres in x and y directions.
-  for i=1:numCells(1)-1
-    for j=1:numCells(2)-1
+  % Transverse coordinates of cell centres.
+  x = 0.5 * ( xLocal(1:end-1) + xLocal(2:end) );
+  y = 0.5 * ( yLocal(1:end-1) + yLocal(2:end) );
+  zCellCentres = 0.5 * ( zLocal(1:(end-1)) + zLocal(2:end) );
+  
+  % Create finite ray along midpoints of cells from front to back face of object AABB. 
+  zOrigin = zLocal(1) - options.epsRayEnds
+  zDestination = zLocal(end) + options.epsRayEnds;
+  zDir = zDestination - zOrigin;
+  
+  % Ray parameter at face centres.
+  tFaceCentres = ( zLocal - zOrigin ) / zDir;
 
-%fprintf( stderr , 'i=%d j=%d\n' ,i,j);
-      % Transverse coordinates of cell centres.
-      x = 0.5 * ( xLocal(i) + xLocal(i+1) );
-      y = 0.5 * ( yLocal(j) + yLocal(j+1) );
-      % Create finite ray along midpoints of cells from front to back face of object AABB. 
-      zOrigin = [ x , y , objBBox(3) ];
-      zDestination = [ x , y , objBBox(6) ];
-      zDir = zDestination - zOrigin;
+  % Ray parameter at cell centres.
+  tCellCentres = ( zCellCentres - zOrigin ) / zDir;
+ 
+  % Loop over all cell centres in x and y directions.
+  for j=1:numCells(2)-1
+    for i=1:numCells(1)-1
       % Permute coordinate to correct dimension for ray casting.
-      origin = circshift( zOrigin , [ 0 , dirShift ] );    
-      destination = circshift( zDestination , [ 0 , dirShift ] );      
+      origin = circshift( [ x(i) , y(j) , zOrigin ] , [ 0 , dirShift ] );    
+      destination = circshift( [ x(i) , y(j) , zDestination ] , [ 0 , dirShift ] );
       dir = destination - origin;
       % Cast ray. Elements parallel to elements are discarded by meshIntersectFBVH but other types
       % of singularity will still be present.
@@ -127,14 +133,7 @@ function [ isInside  ] = meshVolumeMapParallelRays( mesh , fbvh , elementMap , x
       % Attempt to resolve remaining singularities in the intersections found and mark any non-traversing singularities.
       % If valid normals are present only pairs of traversing (entering,leaving) intersections remain in tIntersect.
       [ tIntersect ,  elementIdx , isIntersectEdge  , isFrontFacing , tNonTravSing , parity ] = ...
-        meshResolveRayVolume( tIntersect ,  elementIdx , isIntersectEdge , isFrontFacing , options );      
-%tIntersect
-%isIntersectEdge
-%tNonTravSing
-      % Locations of cell centres.
-      zCellCentres = 0.5 * ( zLocal(1:(end-1)) + zLocal(2:end) );
-      % Ray parameter at cell centres.
-      tCellCentres = ( zCellCentres - zOrigin(3) ) / zDir(3);
+        meshResolveRayVolume( tIntersect ,  elementIdx , isIntersectEdge , isFrontFacing , options );
       % Find cell centres between entering and leaving intersections. 
       for pairIdx=1:(length(tIntersect)/2)
         % [FIXME] Should we used epsUniqueIntersection here?

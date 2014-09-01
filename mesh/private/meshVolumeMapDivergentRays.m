@@ -114,9 +114,9 @@ function [ isInside ] = meshVolumeMapDivergentRays( mesh , fbvh , elementMap , x
   fprintf( '    Ray origin: [%g,%g,%g]\n' , origin );
       
   % Loop over cell centres.
-  for i=1:numCells(1)-1
+  for k=1:numCells(3)-1
     for j=1:numCells(2)-1
-      for k=1:numCells(3)-1
+      for i=1:numCells(1)-1
         % Coordinates of cell centre.
         x = 0.5 * ( xLocal(i) + xLocal(i+1) );
         y = 0.5 * ( yLocal(j) + yLocal(j+1) );

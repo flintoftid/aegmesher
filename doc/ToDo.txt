@@ -79,9 +79,6 @@ Mesh Line Generation
 Mesh Mapping
 ------------
 
-* Don't use FBVH in case of line mesher - but still need to get overall AABB.
-  Or identify and fix div by zeros in FBVH generation for line objects.
-
 * Check BVH is tuned correctly. What happens if we double Nc?
   Make a function to tune BVH on real meshes.
 
@@ -240,8 +237,7 @@ Data on mesh
 Performance
 -----------
 
-* Optmise meshSurfaceMapParallelRays - move fixed values out of x/y loops.
-  Is there better way to deal with degenerate case when AABB a surface?
+* Is there better way to deal with degenerate case when AABB a surface?
   
 * Check all sparse arrays operations are handle efficiently:
 
@@ -467,3 +463,9 @@ DONE
   We probably want to make float indices a group option ->  isNodesFloat.
 
 * Support nodes in meshSmesh2Unmesh - most done, needs validating.
+
+* Don't use FBVH in case of line mesher - but still need to get overall AABB.
+  Or identify and fix div by zeros in FBVH generation for line objects.
+  
+* Optmise meshSurfaceMapParallelRays - move fixed values out of x/y loops.
+  
