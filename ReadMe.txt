@@ -1,11 +1,12 @@
 
 
-University_of_York Applied Electromagnetics Group Mesh Generator
+AEG Mesher: An Open Source Structured Mesh Generator for FDTD Simulations
 
-The Applied Electromagnetics Group (AEG) mesh generator, aegmesher, is a
-structured mesh generator for uniform and non-uniform cuboid meshes. It was
-primarily developed for creating meshes for finite-difference time-domain (FDTD)
-and similar electromagnetic solvers.
+The Applied Electromagnetics Group (AEG) mesh generator, aegmesher, is an Open
+Source structured mesh generator for uniform and non-uniform cuboid meshes. It
+was primarily developed in the Department_of_Electronics at the University_of
+York for creating meshes for finite-difference time-domain (FDTD) and similar
+electromagnetic solvers.
 
 Code Features
 

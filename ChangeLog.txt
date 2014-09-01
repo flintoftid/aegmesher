@@ -1,4 +1,121 @@
+2014-08-31  Ian David Flintoft  <ian.flintoft@york.ac.uk>
+
+	* doc/ToDo.txt, doc/UserManual.txt, mesh/meshAddCompVol.m,
+	mesh/meshMapGroups.m, mesh/meshSmesh2Unmesh.m,
+	mesh/meshSmesh2UnmeshFast.m, mesh/meshTestDriver.m,
+	mesh/meshWriteLines2Gmsh.m, mesh/meshWriteVulture.m:
+	user: Ian David Flintoft <ian.flintoft@york.ac.uk> branch 'default'
+
+	changed doc/ToDo.txt changed doc/UserManual.txt
+
+	 Updated.
+
+	added mesh/meshSmesh2Unmesh.m changed mesh/meshAddCompVol.m changed
+	mesh/meshMapGroups.m changed mesh/meshTestDriver.m changed
+	mesh/meshWriteVulture.m
+
+	 Changed structured mesh format to something more flexible and
+	extensible for future developments.
+
+	removed mesh/meshSmesh2UnmeshFast.m
+
+	 Now the default version.
+
+	removed mesh/meshWriteLines2Gmsh.m
+
+	 Redundant - functionality replaced by meshAddCompVol().
+	[73f97288e2ad] [tip]
+
+2014-08-30  Ian David Flintoft  <ian.flintoft@york.ac.uk>
+
+	* Install.txt, doc/Bugs.txt, doc/ImplementationReport.txt,
+	doc/ToDo.txt, doc/UserManual.txt:
+	user: Ian David Flintoft <ian.flintoft@york.ac.uk> branch 'default'
+
+	changed Install.txt changed doc/Bugs.txt changed
+	doc/ImplementationReport.txt changed doc/ToDo.txt changed
+	doc/UserManual.txt
+
+	 Documentation updates.
+	[f5f0f8f1f316]
+
+2014-08-29  Ian David Flintoft  <ian.flintoft@york.ac.uk>
+
+	* mesh/meshMapGroups.m:
+	user: Ian David Flintoft <ian.flintoft@york.ac.uk> branch 'default'
+
+	changed mesh/meshMapGroups.m
+
+	 Use flattened indices to incorporate group includeness booleans
+	into overall structured mesh. Fixes compatibility issue and may be
+	more efficient.
+	[1ff29290c259]
+
+	* mesh/private/meshSurfaceMapParallelRays.m,
+	mesh/private/meshVolumeMapParallelRays.m:
+	user: Ian David Flintoft <ian.flintoft@york.ac.uk> branch 'default'
+
+	changed mesh/private/meshSurfaceMapParallelRays.m changed
+	mesh/private/meshVolumeMapParallelRays.m
+
+	 Changed shift() to circshift() for compatibility.
+	[6c53b95672ef]
+
+	* mesh/private/meshBuildFBVH.m:
+	user: Ian David Flintoft <ian.flintoft@york.ac.uk> branch 'default'
+
+	changed mesh/private/meshBuildFBVH.m
+
+	 Removed globals now Octave fully supports nested function.
+	[6e692594a402]
+
+	* CMakeLists.txt, mesh/meshTestDriver.m, mesh/meshTestTimingSummary.m:
+	user: Ian David Flintoft <ian.flintoft@york.ac.uk> branch 'default'
+
+	changed CMakeLists.txt
+
+	 Fix typo.
+
+	changed mesh/meshTestDriver.m changed mesh/meshTestTimingSummary.m
+
+	 Tidy up timing data and order of values.
+	[f3588c32924e]
+
+2014-08-28  Ian David Flintoft  <ian.flintoft@york.ac.uk>
+
+	* ReadMe.txt:
+	user: Ian David Flintoft <ian.flintoft@york.ac.uk> branch 'default'
+
+	changed ReadMe.txt
+
+	 Remove image title from ReadMe.txt.
+	[264f37760d88]
+
+	* ReadMe.txt:
+	user: Ian David Flintoft <ian.flintoft@york.ac.uk> branch 'default'
+
+	changed ReadMe.txt
+
+	 Now generated automatically from Wiki home page.
+	[09975ac2f12b]
+
+	* ReadMe.txt, doc/ToDo.txt:
+	user: Ian David Flintoft <ian.flintoft@york.ac.uk> branch 'default'
+
+	changed ReadMe.txt changed doc/ToDo.txt
+
+	 Merged readme with Wiki home page.
+	[53a8c0ba523a]
+
 2014-08-27  Ian David Flintoft  <ian.flintoft@york.ac.uk>
+
+	* ChangeLog.txt, Install.txt:
+	user: Ian David Flintoft <ian.flintoft@york.ac.uk> branch 'default'
+
+	changed ChangeLog.txt changed Install.txt
+
+	 Add essential installation information to docs!
+	[b8ce15a439dc]
 
 	* ChangeLog.txt, mesh/meshTestTimingSummary.m, tests/CMakeLists.txt,
 	tests/Summary/CMakeLists.txt:
@@ -9,7 +126,7 @@
 	tests/CMakeLists.txt
 
 	 Added timing summary and plots for tests.
-	[5774e4a0f200] [tip]
+	[5774e4a0f200]
 
 	* ChangeLog.txt, mesh/meshCylinders.m:
 	user: Ian David Flintoft <ian.flintoft@york.ac.uk> branch 'default'

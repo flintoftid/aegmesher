@@ -52,7 +52,7 @@ function meshWriteVulture( mshFileName , smesh , options )
 % based arrays!
 
   % Directives for groupt types.
-  directiveString = { 'TW' , 'TB' , 'MB' } 
+  directiveString = { 'TW' , 'TB' , 'MB' };
   
   % Mesh lines.
   x = smesh.lines.x;
@@ -83,7 +83,7 @@ function meshWriteVulture( mshFileName , smesh , options )
   fprintf( 'Opened msh file %s.\n' , mshFileName );
   fprintf( fout , 'VM 1.0.0\n' );
   fprintf( fout , '#\n# Section 1\n#\n' );
-  fprintf( fout , 'DM %d %d %d\n', length( x ) - 1 , length( y ) - 1 , length( z ) - 1 );
+  fprintf( fout , 'DM %3d %3d %3d\n', length( x ) - 1 , length( y ) - 1 , length( z ) - 1 );
   fprintf( fout , 'GS\n' );
   fprintf( fout , '#\n# Section 2\n#\n' );
   % [FIXME] Use fmin/fmax to determine differentiated Gaussian parameters.
@@ -107,13 +107,13 @@ function meshWriteVulture( mshFileName , smesh , options )
 
   % Write out physical model selectors.
   for groupIdx=1:smesh.numGroups
-    bboxes = smesh.groups{groupIdx};
     groupType = smesh.groupTypes(groupIdx);
     if( groupType == 0 )
       continue;
     end % if
+    bboxes = smesh.groups{groupIdx};
     for bboxIdx=1:size( bboxes , 1 )  
-      fprintf( fout , '%s %d %d %d %d %d %d %s\n' , directiveString{groupType} , ...
+      fprintf( fout , '%s %3d %3d %3d %3d %3d %3d %s\n' , directiveString{groupType} , ...
                bboxes(bboxIdx,1) - 1 , bboxes(bboxIdx,4) - 1 , ...
                bboxes(bboxIdx,2) - 1 , bboxes(bboxIdx,5) - 1 , ...
                bboxes(bboxIdx,3) - 1 , bboxes(bboxIdx,6) - 1 , ...
@@ -123,6 +123,20 @@ function meshWriteVulture( mshFileName , smesh , options )
 
   % [FIXME] Add dummy observber?
   % fprintf( fout , 'OP  0 2 1 1 0 2 output1 .....\n' );
+%    for groupIdx=1:smesh.numGroups
+%      groupType = smesh.groupTypes(groupIdx);
+%      if( groupType ~= 0 )
+%        continue;
+%      end % if
+%      bboxes = smesh.groups{groupIdx};
+%      for bboxIdx=1:size( bboxes , 1 )  
+%        fprintf( fout , 'OP %3g %3g %3g %3g %3g %3g %s TDOM_ASCII\n' , ...
+%                 bboxes(bboxIdx,1) - 1 , bboxes(bboxIdx,4) - 1 , ...
+%                 bboxes(bboxIdx,2) - 1 , bboxes(bboxIdx,5) - 1 , ...
+%                 bboxes(bboxIdx,3) - 1 , bboxes(bboxIdx,6) - 1 , ...
+%                 names{groupIdx} );    
+%      end % for bboxIdx
+%    end % for groupIdx
   
   fprintf( fout , 'GE\n' );
   

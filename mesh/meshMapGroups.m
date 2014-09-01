@@ -36,26 +36,19 @@ function [ smesh ] = meshMapGroups( mesh , groupNamesToMap , lines , options )
 %                             3 - volume
 %
 %        .groups{}          - cell array of bounding boxes of structured mesh elements for
-%                             each group. groups{groupIdx} is a nx3 or nx6 array of structured mesh
-%                             indices of the bounding box corners of the elements in the group. For
-%                             node groups only one coordinate is required (BBox is degenerate).
-%                              
-%                             For group type 0 (node): groups{groupIdx} is numNodesInGroup x 3 array
-%                                                      groups{groupIdx}(nodeIdx,coordIdx)
-%                                                      coordIdx = 1: i
-%                                                      coordIdx = 2: j
-%                                                      coordIdx = 3: k
+%                             each group. groups{groupIdx} is an nx6 array of structured mesh
+%                             indices of the bounding box corners of the elements in the group,
+%                             groups{groupIdx}(bboxIdx,coordIdx):
 %
-%                             For all other group types: groups{groupIdx} is numBBoxInGroup x 6 array
-%                                                        groups{groupIdx}(bboxIdx,coordIdx)
-%                                                        coordIdx = 1: ilo
-%                                                        coordIdx = 2: jlo
-%                                                        coordIdx = 3: klo
-%                                                        coordIdx = 4: ihi
-%                                                        coordIdx = 5: jhi
-%                                                        coordIdx = 6: khi  
-%                                                        Boundng box can be single element (edge,face,cell)
-%                                                        or multiple elements (line,surface,volume).
+%                               coordIdx = 1: ilo
+%                               coordIdx = 2: jlo
+%                               coordIdx = 3: klo
+%                               coordIdx = 4: ihi
+%                               coordIdx = 5: jhi
+%                               coordIdx = 6: khi
+%
+%                             The boundng box can be single element (node,edge,face,cell)
+%                             or multiple elements (line,surface,volume).
 %              
 %        .numGroupGroups    - integer, number of groups of groups.
 %        .groupGroupNames{} - string{numGroupGroups}, cell array of group group names.
@@ -202,7 +195,7 @@ function [ smesh ] = meshMapGroups( mesh , groupNamesToMap , lines , options )
       end % if
       % Map the group. Use the new group index in the structured mesh.
       [ isXY , isYZ , isZX ] = meshSurfaceMapGroup( mesh , fbvh , elementMap , lines , objBBox , idxBBox , thisOptions );
-      % If third dimension is 1 size only returns two dimension!
+      % Careful - if third dimension is 1 size only returns two dimension!
       arraySize = [ size( isXY , 1 ) , size( isXY , 2 ) , size( isXY , 3 ) ];
       % Add to structured mesh.
       flatIdx = find( isXY );   
@@ -219,7 +212,7 @@ function [ smesh ] = meshMapGroups( mesh , groupNamesToMap , lines , options )
         imin + iZX - 1 + bboxStencils(7,1) , jmin + jZX - 1 + bboxStencils(7,2) , kmin + kZX - 1 + bboxStencils(7,3) ];      
       smesh.groups{smesh.numGroups} = [ bboxXY ; bboxYZ ; bboxZX ];
       clear isXY isYZ isZX flatIdx iXY jXY kXY iYZ jYZ kYZ iZX jZX kZX bboxXY bboxYZ bboxZX
-      % Relabel group as surface on the structured mesh.
+      % Relabel group as a surface group on the structured mesh.
       smesh.groupTypes(smesh.numGroups) = 2;
       smesh.groupNames{smesh.numGroups} = thisGroupName;
     case 'CLOSED_SURFACE'
@@ -233,13 +226,13 @@ function [ smesh ] = meshMapGroups( mesh , groupNamesToMap , lines , options )
         % This should only happen if group AABB has zero volume.
         fprintf( '  Group has no cells within computational volume - ignoring' )
       else
-        % Map the group as a solid. Use the new group index in the structured mesh.
+        % Map the group as a solid.
         % Cells at imax, jmax, kmax will not be used for volumetric objects.
         smesh.numGroups = smesh.numGroups + 1;
         isInside = meshVolumeMapGroup( mesh , fbvh , elementMap , lines , objBBox , idxBBox , thisOptions );
         % Remap as surface object.
         [ isXY , isYZ , isZX ] = meshVolumeGroup2SurfaceGroup( isInside , idxBBox , thisOptions );
-        % If third dimension is 1 size only returns two dimension!
+        % Careful - if third dimension is 1 size only returns two dimension!
         arraySize = [ size( isXY , 1 ) , size( isXY , 2 ) , size( isXY , 3 ) ];
         % Add to structured mesh.
         flatIdx = find( isXY );   
@@ -256,7 +249,7 @@ function [ smesh ] = meshMapGroups( mesh , groupNamesToMap , lines , options )
           imin + iZX - 1 + bboxStencils(7,1) , jmin + jZX - 1 + bboxStencils(7,2) , kmin + kZX - 1 + bboxStencils(7,3) ];      
         smesh.groups{smesh.numGroups} = [ bboxXY ; bboxYZ ; bboxZX ];      
         clear isXY isYZ isZX iXY jXY kXY iYZ jYZ kYZ iZX jZX kZX bboxXY bboxYZ bboxZX
-        % Relabel group as surface on the structured mesh.
+        % Relabel group as a surface group on the structured mesh.
         smesh.groupTypes(smesh.numGroups) = 2;
         smesh.groupNames{smesh.numGroups} = thisGroupName;
       end % if
@@ -269,7 +262,7 @@ function [ smesh ] = meshMapGroups( mesh , groupNamesToMap , lines , options )
       end % if
       % Map the group. Use the new group index in the structured mesh.
       [ isX , isY , isZ ] = meshLineMapGroup( mesh , thisGroupIdx , lines , objBBox , idxBBox , thisOptions );
-      % If third dimension is 1 size only returns two dimension!
+      % Careful - if third dimension is 1 size only returns two dimension!
       arraySize = [ size( isX , 1 ) , size( isX , 2 ) , size( isX , 3 ) ];
       % Add to structured mesh.
       flatIdx = find( isX );   
@@ -290,24 +283,13 @@ function [ smesh ] = meshMapGroups( mesh , groupNamesToMap , lines , options )
       smesh.groupTypes(smesh.numGroups) = 1;
       smesh.groupNames{smesh.numGroups} = thisGroupName;
     case 'POINT'
-      fprintf( '  Group is a point object\n' );
-      fprintf( '  *** Ignoring unsupported object type %s ***\n' , thisOptions.type );
-      %smesh.numGroups = smesh.numGroups + 1;
-      %% Point object - mesh group type must be a node. 
-      %if( mesh.groupTypes(thisGroupIdx) ~= 0 )
-      %  error( 'Cannot map group type with types other than 0 (line) as a point object' ,  mesh.groupTypes(groupIdx) );
-      %end % if
-      %% Map the group. Use the new group index in the structured mesh.
-      %[ isNode ] = meshNodeMapGroup( mesh , thisGroupIdx , lines , objBBox , idxBBox , thisOptions );      
-      %% Add to structured mesh.
-      %bboxType = 1;                              
-      %flatIdx = find( isNode );
-      %[ i , j , k ] = ind2sub( size( isNode ) , flatIdx );
-      %smesh.groups{smesh.numGroups} = [ imin + i - 1 , jmin + j - 1 , kmin + k - 1 ];      
-      %% Relabel group as node on the structured mesh.
-      %smesh.groupTypes(smesh.numGroups) = 0;
-      %smesh.groupNames{smesh.numGroups} = thisGroupName;    
-      %clear isNode i j k flatIdx
+      fprintf( '  Group is mapped as a point object\n' );
+      smesh.numGroups = smesh.numGroups + 1;
+      % Map the all the nodes in the group regardless of type.
+      smesh.groups{smesh.numGroups} = meshNodeMapGroup( mesh , thisGroupIdx , lines , objBBox , idxBBox , thisOptions ); 
+      % Relabel group as a node group on the structured mesh.
+      smesh.groupTypes(smesh.numGroups) = 0;
+      smesh.groupNames{smesh.numGroups} = thisGroupName;
     case 'BBOX'
       fprintf( '  Not mapping BBOX type group\n' );
     otherwise

@@ -1,10 +1,10 @@
-function [ mesh ] = meshSmesh2UnmeshFast( smesh )
+function [ mesh ] = meshSmesh2Unmesh( smesh )
 %
-% meshSmesh2UnmeshFast - Converts a structured mesh into an unstructured mesh.
+% meshSmesh2Unmesh - Converts a structured mesh into an unstructured mesh.
 %
 % Usage:
 %
-% [ mesh ] = meshSmesh2UnmeshFast( smesh )
+% [ mesh ] = meshSmesh2Unmesh( smesh )
 %
 % Inputs:
 %
@@ -133,6 +133,11 @@ function [ mesh ] = meshSmesh2UnmeshFast( smesh )
   elementIdx = 0;
   nextElemIdxInGroup = zeros( mesh.numGroups );
   for groupIdx=1:mesh.numGroups
+  
+    % For node groups truncate floating indices.
+    if( smesh.groupTypes( groupIdx ) == 0 )
+      smesh.groups{groupIdx} = floor( smesh.groups{groupIdx} );  
+    end % if
 
     % Find implicit flattened cell index of all entities belonging to current group.
     flatCellIdx = sub2ind( [ Nx , Ny , Nz ] , smesh.groups{groupIdx}(:,1) , smesh.groups{groupIdx}(:,2) , smesh.groups{groupIdx}(:,3) );
