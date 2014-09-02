@@ -21,26 +21,18 @@ Priority Items
   the angle may be too expensive, but a better heuristic could be derived by 
   analysing the mesh to find the smallest elements sizes and ray lengths.
   E.g find minMeshSize and use to determine epsParallelRays, epsRayEnds?
-
-* Run profiler on mapper to find any obvious performance issues:
-
-  - Growing arrays.
-  - i,j,k loops should be in order k, j, i.
-  - What is the current dominant contribution to the mapping time?
   
   
 General
 -------
 
 * groupGroup stuff should always be optionally considered in all mesh operations.
+  If it is not present ignore it. If present process consistently.
   Check all functions handle this correctly.
-  
-* groupGroup stuff should be carried over from unstructured to structured mesh.
 
 * Identify functions which may generate duplicate elements. These can be a
   problem depending on the usage of the output. Maybe should issue warning.
-  
-  
+
 Mesh Line Generation
 --------------------
 
@@ -79,11 +71,6 @@ Mesh Line Generation
 Mesh Mapping
 ------------
 
-* Check BVH is tuned correctly. What happens if we double Nc?
-  Make a function to tune BVH on real meshes.
-
-* Improve efficiency of closed surface mapping in meshVolumeGroup2SurfaceGroup.m.
-
 * Consider propagating down new structured mesh format into
   
   meshLineMapGroup.m
@@ -91,17 +78,57 @@ Mesh Mapping
   meshVolumeMapGroup.m
   
   Main issue is "voting algorithm" for casting rays in different directions for volume groups.
-  This can only be done efficiently with the isInside(i,j,k,dir) format so may need to keep
-  for the meshVolumeMapParallelRays case.
-  
+  This can only be done efficiently with the isInside(i,j,k,dir) format.
+
+  * How to deal with source and observers?
+
+    New per group options: physicalType = 'MEDIUM' , 'SOURE' , 'OBSERVER'
+                   
+    How are they defined in the input mesh?
+    
+      Observers: Normal group of elements - any dimensionality.
+
+      Sources: Normal group of elements - any dimensionality.
+      
+    How should they be mapped?
+    
+      Observers: physicalType = 'OBSERVER'
+                 Map as all nodes in group using float indices.
+
+      Sources: physicalType = 'SOURCE'
+               Map according to dimensionality as normal.
+      
+    How are they exported in Vulture?
+    
+        Observers: OT <groupName> <format> <domain> <quantity1> ... <quantityN>
+                   OP <ilo> <ihi> <jlo> <jhi> <klo> <khi> <groupName> <param1> ... <paramN> 
+    
+        Sources: WF .... one default waveform determine from frequency range. 
+                 EX <ilo> <ihi> <jlo> <jhi> <klo> <khi> <groupName> <param1> ... <paramN> 
+
+  + Sources: nodes, lines, planes, surfaces, volumes.
+
+  + Observers: nodes, lines planes, surfaces. volumes.
+
+  In Vulture EX, PW, OP can only be defined for cuboid (possibly degenerate)
+  shapes. In more complex cases may want to e.g define observation of current
+  on curve surface. Related to issue of how to get outputs out and map back 
+  onto input mesh. Also should observers be nodal or use natural elements
+  for output type? 
+
+  + Define new meshing type for SOURCE and OBSERVER which just add the overall
+    bounding box to the structured mesh? 
+
 * Surface mapping is not robust on stair-cased surfaces. E.g. cube at 45 degrees.
   Improve algorithm so get similar results from CLOSED_SURFACE and SURFACE
   mapping. This is hard.
-  
-* Check solid and surface meshers still deal with truncated objects.
 
-* Make line mesher deal with truncated objects.
+* Check solid and surface mappers still deal with truncated objects.
+
+* Make line mapper deal with truncated objects.
   
+* Make node mapper deal with truncated objects.
+
 * Michael has code to transform non triangular elements into triangles using the
   MATAB Delauny function. Maybe offer this at higher level using function:
 
@@ -155,9 +182,6 @@ Unstructured mesh import/export
 
   + Current version is not very general.
 
-  + Wires embedded in concept.in file - original CONCEPT-I had ability
-    to read from file?
-
   + Dealing with closed dielectric bodies is going to be hard and require 
     more meta information to be stored. E.g blade model - intersection
     surfaces need to be output separately and everything stitched together
@@ -166,21 +190,6 @@ Unstructured mesh import/export
     
 Structured mesh exporters
 -------------------------
-
-* How to deal with source and observers?
-
-  + Sources: nodes, lines, planes, surfaces, volumes.
-
-  + Observers: nodes, lines planes, surfaces. volumes.
-
-  In Vulture EX, PW, OP can only be defined for cuboid (possibly degenerate)
-  shapes. In more complex cases may want to e.g define observation of current
-  on curve surface. Related to issue of how to get outputs out and map back 
-  onto input mesh. Also should observers be nodal or use natural elements
-  for output type. 
-
-  + Define new meshing type for SOURCE and OBSERVER which just add the overall
-    bounding box to the structured mesh? 
 
 * meshWriteVulture( vultureFileName , mesh )
 
@@ -204,6 +213,8 @@ Structured mesh exporters
        modelType - SIMPLE, DEBYE,....
 
 * meshWriteHawk( hawkFileName , mesh )
+
+  Export to AEG Hawk TLM solver format.
 
 * Would be nice to export to AMELET-HDF but Octave has no generic
   HDF5 writing support - need tight control of dataset types and names
@@ -233,12 +244,30 @@ Data on mesh
   6 0.4 2.3 4.5
   $EndNodeData 
 
+  Function meshReadVulture will read data from Vulture output files and original unstructured mesh
+  and generate Gmsh data - can put in separate .msh files and merge.
+
   
 Performance
 -----------
 
-* Is there better way to deal with degenerate case when AABB a surface?
+* Run profiler on the mapper to find any obvious performance issues:
+
+  - Growing arrays.
+  - i,j,k loops should be in order k, j, i.
+  - Unchanging calculations inside loops.
+  - Easy vectorisations.
+  - What is the current dominant contribution to the mapping time?
+
+* Check BVH is tuned correctly. What happens if we double Nc?
+  Make a function to tune BVH on real meshes.
   
+* Speed up ray AABB intersection calculation.
+
+* Is there a better way to deal with degenerate case when AABB a surface?
+  
+* Improve efficiency of closed surface mapping in meshVolumeGroup2SurfaceGroup.m.
+
 * Check all sparse arrays operations are handle efficiently:
 
   [ i1, j1 , s1 ] = find( mesh1.groups );
@@ -246,9 +275,7 @@ Performance
   mesh.groups = sparse( [ i1 ; i2 ] , [ j1 ; j2 + mesh1.numGroups ] , [ s1 ; s2 + mesh1.numElements ] , ...
                          max( [ i1 ; i2 ] ) , mesh.numGroups );
 
-* Do some profiling to locate current bottlenecks.
-
-                         
+                           
 Tests
 -----
 

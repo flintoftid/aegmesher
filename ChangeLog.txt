@@ -1,3 +1,34 @@
+2014-09-01  Ian David Flintoft  <ian.flintoft@york.ac.uk>
+
+	* doc/ToDo.txt, mesh/meshMapGroups.m,
+	mesh/private/meshSurfaceMapParallelRays.m,
+	mesh/private/meshVolumeMapDivergentRays.m,
+	mesh/private/meshVolumeMapParallelRays.m:
+	user: Ian David Flintoft <ian.flintoft@york.ac.uk> branch 'default'
+
+	changed doc/ToDo.txt changed mesh/meshMapGroups.m changed
+	mesh/private/meshSurfaceMapParallelRays.m changed
+	mesh/private/meshVolumeMapDivergentRays.m changed
+	mesh/private/meshVolumeMapParallelRays.m
+
+	 Basic optimisations.
+	[f9e6670366b7] [tip]
+
+	* ChangeLog.txt, ReadMe.txt, doc/ToDo.txt, mesh/meshMapGroups.m,
+	mesh/meshSmesh2Unmesh.m, mesh/meshWriteVulture.m,
+	mesh/private/meshNodeMapGroup.m:
+	user: Ian David Flintoft <ian.flintoft@york.ac.uk> branch 'default'
+
+	changed ChangeLog.txt changed ReadMe.txt changed doc/ToDo.txt
+
+	 Updated.
+
+	changed mesh/meshMapGroups.m changed mesh/meshSmesh2Unmesh.m changed
+	mesh/meshWriteVulture.m added mesh/private/meshNodeMapGroup.m
+
+	 Add nodal group mapping capability.
+	[1d7bb97cdfcb]
+
 2014-08-31  Ian David Flintoft  <ian.flintoft@york.ac.uk>
 
 	* doc/ToDo.txt, doc/UserManual.txt, mesh/meshAddCompVol.m,
@@ -24,7 +55,7 @@
 	removed mesh/meshWriteLines2Gmsh.m
 
 	 Redundant - functionality replaced by meshAddCompVol().
-	[73f97288e2ad] [tip]
+	[73f97288e2ad]
 
 2014-08-30  Ian David Flintoft  <ian.flintoft@york.ac.uk>
 
