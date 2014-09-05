@@ -12,7 +12,8 @@ Priority Items
 
 * Add more of Michael's tests to the test-suite.
 
-* Complete first draft of a full user manual.
+* Complete first draft of a full user manual. Include a detailed example, probably
+  the wire box testcase as tutorial.
 
 * The parallel ray/element detection algorithm in meshTriRayIntersection1/2/3 
   is not robust. It depends on the mesh and elements mesh sizes - see the comment
@@ -82,7 +83,7 @@ Mesh Mapping
 
   * How to deal with source and observers?
 
-    New per group options: physicalType = 'MEDIUM' , 'SOURE' , 'OBSERVER'
+    New per group options: physicalType = 'MEDIUM' , 'SOURCE' , 'OBSERVER'
                    
     How are they defined in the input mesh?
     
@@ -322,6 +323,8 @@ Documentation
 -------------
 
 * More comprehensive user manual.
+
+* Translate user manual to LaTeX.
 
 * Add implementation notes.
 
