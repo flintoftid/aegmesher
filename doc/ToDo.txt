@@ -12,8 +12,7 @@ Priority Items
 
 * Add more of Michael's tests to the test-suite.
 
-* Complete first draft of a full user manual. Include a detailed example, probably
-  the wire box testcase as tutorial.
+* Complete first draft of a full user manual.
 
 * The parallel ray/element detection algorithm in meshTriRayIntersection1/2/3 
   is not robust. It depends on the mesh and elements mesh sizes - see the comment
@@ -22,8 +21,9 @@ Priority Items
   the angle may be too expensive, but a better heuristic could be derived by 
   analysing the mesh to find the smallest elements sizes and ray lengths.
   E.g find minMeshSize and use to determine epsParallelRays, epsRayEnds?
-  
-  
+
+* Review all other tolerances - are they absolute or relative.
+ 
 General
 -------
 

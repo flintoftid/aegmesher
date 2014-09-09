@@ -67,7 +67,8 @@ Quick Start On Linux
 
    to the initialisation file ~/.octaverc. This makes Octave read a startup.m
    file in the current working directory when is is started. This is required
-   by the test-suite for setting paths to m-files.
+   by the test-suite for setting paths to m-files. It isn't required for using
+   the software outside of the test-suite.
 
 1. EITHER: Use mercurial to clone the source code repository on Bitbucket:
 

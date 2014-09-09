@@ -57,7 +57,10 @@ should run under both GNU Octave and MATLAB on Linux and Windows systems.
 Documentation
 
 Installation instructions are contained in the file Install.txt in the source
-distribution. There is also a draft user manual in the file doc/UserManual.txt.
+distribution.
+The best place to start after installing the software is with the detailed
+tutorial example in the tutorial directory of the software package.
+There is also a draft user_manual in the file doc/UserManual.txt.
 
 Bugs and support
 
@@ -87,9 +90,10 @@ We welcome any contributions to the development of the mesher, including:
   the mesher.
 * Speeding up the mesh mapping phase, maybe be reimplementing keys parts as low
   level code in another language.
+* Items in the to-do list in the file ToDo.txt.
 
-Please contact Dr_Ian_Flintoft if you are interested in helping with these or
-any other aspect of development.
+Please contact [Dr Ian Flintoft], ian.flintoft@york.ac.uk, if you are interested
+in helping with these or any other aspect of development.
 
 Licence
 
@@ -97,20 +101,21 @@ The code is licensed under the GNU_Public_Licence,_version_3.
 
 Developers
 
-Dr_Ian_Flintoft : ian.flintoft@york.ac.uk
-Mr Michael Berens : michael-berens1@web.de
-Dr_John_Dawson : john.dawson@york.ac.uk
+Dr_Ian_Flintoft, ian.flintoft@york.ac.uk
+Mr Michael Berens, michael-berens1@web.de
+Dr_John_Dawson, john.dawson@york.ac.uk
 
 Contacts
 
-Dr_Ian_Flintoft : ian.flintoft@york.ac.uk
-Dr_John_Dawson : john.dawson@york.ac.uk
+Dr_Ian_Flintoft, ian.flintoft@york.ac.uk
+Dr_John_Dawson, john.dawson@york.ac.uk
 
 Credits
 
-The mesher originated as the project of ERASMUS student Mr Michael Berens from
-the Leibnitz_Universität_Hannover during his internship at the University_of
-York under the supervision of Dr John Dawson during 2013.
+The mesher originated as the project of Erasmus_Programme student Mr Michael
+Berens from the Leibnitz_Universität_Hannover during his internship at the
+University_of_York in 2013, under the supervision of Dr John Dawson and Prof
+Heyno Garbe.
 The mesh formats are largely based on the AMELET-HDF specification.
 Many thanks to the Gmsh developers for creating an excellent Open_Source mesh
 generator.

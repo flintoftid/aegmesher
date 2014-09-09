@@ -1,433 +1,625 @@
-  
-User Manual For AEG Mesher
-==========================
+# AEG Mesher: User Manual
 
-I. D. Flintoft
-M. Berens
+Ian Flintoft, Michael Berens
 
+[TOC]
 
-Overview
-========
+This manual is a **work in progress** and may not be consistent with
+the current version of the code!**
 
-Structured mesh generator - uniform and non-uniform cuboid meshes.
+# Overview
 
-MATALB/OCtave script - no built in GUI but Gmsh can be used to view
-input mesh, mesh lines and output mesh.
+The mesh generator takes a description of a physical structure in the form of an 
+unstructured mesh and then, using options provided by the user, creates a structured mesh 
+representation of the structure. The mesh generator and associated utilities are able 
+to read unstructured meshes in [Gmsh][] and [AMELET-HDF][] format. The target structured 
+mesh can be cubic, uniform or non-uniform. The input unstructured mesh can contain 
+any number of physical objects defined by groups of mesh elements. These groups can 
+define point-like, linear, surface or volumetric objects.
 
-Input is an unstructured mesh of the objects to be meshed. This can be 
-generated using many different tools, e.g. Gmsh.
+The software is script-driven using the GNU [Octave][] language which allows it to be
+easily extended and combined with other phases of an overall simulation work-flow. 
+The meshing  is performed in two stages:
 
-Input meshes in Gmsh, AMELET-HDF formats supported natively.
-Many other formata can be input via Gmsh.
+1. The input unstructured mesh is first analysed together with the user provided options and 
+   a set of mesh lines generated that optimally satisfy the meshing constraints. The key 
+   constraints are the maximum and minimum cell size each object in the mesh. 
 
-Meshing control parameters are set in the script.
+2. Each object in the unstructured mesh is then mapped onto the structured mesh.
 
-Material database can be used to inform appropriate mesh density 
-for electromagnetic simluations.
+Currently *aegmesher* can export the structured meshes in the [AEG][] [Vulture][] FDTD Code format. 
+Other formats can easily be added.
 
-Generic structured mesh created internal. 
+The package also has some limited support for transforming unstructured meshes into formats suitable for
+use in the [CONCEPT-II][] method-of-moments code.
 
-Currently can be exported to the UoY Vulture FDTD code mesh format.
+# Unstructured meshes
 
-Easy to add exporters for other codes.
-
-Also provides some mesh conversion capability, e.g can export
-unstructured meshes to CONCEPT-II format (not dielectrics).
-
-Creating unstructured input meshes
-==================================
-
-The structure to be meshed must be described using
-an unstructured mesh containing each material
-object. The internal format of the unstructured mesh 
-is described in Appendix A.
+The physical structure to be meshed must be described using
+an unstructured mesh containing each physical object. The 
+internal format of the unstructured mesh is described in Appendix A.
 
 Each material object is represented as a named 
-group of mesh elements. Elements of dimensions
-0 (node), 1 (line), 2 (surface) and 3 (volume)
-are supported by the format. However 3D elements
-are not used for mesh generation - volumetric 
-material objects should be described by their closed 
-boundary surface. Currently only triangular surface 
-elements are supported by the mesh mapping functions. 
+group of mesh elements. Elements of dimension
+0 (points), 1 (lines), 2 (surfaces) and 3 (volume)
+are supported by the format. Common element types
+are given in the following table.
 
+Mesh element type | Number of nodes | Description
+:-----------------|:----------------|:--------------------
+node1             | 1               | single node
+bar2              | 2               | line element
+tri3              | 3               | triangle
+quad4             | 4               | planar quadrilateral
+hex8              | 8               | hexahedron
 
-Material type       Unstructured mesh representation
---------------------------------------------------------
-volumetric VOLUME   closed bounding surface (tri3)
-                    no check is made for closed surface
-                      
-surface material    surface (tri3)
-                    can be closed or open
-                      
-wire material       lines (bar2)
+However 3-dimensional elements are not used for structured 
+mesh generation - volumetric physical objects should be described 
+by their closed boundary surface. Also, currently only triangular 
+surface  elements are supported by the mesh mapping functions. 
+The representation of physical objects in the structured mesh 
+should therfore follow the rules summarised in the table below.
 
-points              nodes (node0)
---------------------------------------------------------
+Physical object | Unstructured mesh representation  | Supported element types
+:---------------|:----------------------------------|:------------------------
+volumetric      | closed bounding surface           | tri3
+surface         | open or closed surface            | tri3
+linear/wire     | lines                             | bar2
+points          | nodes                             | node1
 
-Each group must be a complete representation of the object.
-In particular any elements belonging to shared intersection 
-surfaces between objects must be included in the groups
-for both objects. Meshing of objects in done individually - the
-input mesh can contain duplicate elements, for shared surfaces
-for example; however duplicate elements must be identical to
-avoid meshing aretacts.
+Each group of elements must be a complete representation of 
+the object. In particular any elements belonging to shared 
+intersection surfaces between two touching solid objects must 
+be included in the groups for both objects. Meshing of objects 
+is done individually, so although the input mesh can contain 
+duplicate elements, e.g. for shared surfaces, the duplicate 
+elements must be identical to avoid meshing artefacts.
 
+## Importing and exporting unstructured meshes
 
-Reading and writing meshes
-==========================
+### Unstructured mesh import
 
-The primary on-disk mesh format is the Gmsh ASCII format version 2.
+The mesher supports importing unstructured meshes in
+the following formats:
 
-Functions are provided to read and write this format:
+1. The [Gmsh][] ASCII format version 2.
+2. The [AMELET-HDF][] format.
+3. The [CONCEPT-II][] surface format. 
 
-meshReadGmsh()
-meshWriteGmsh()
-meshMergeUnstructured()
-             
-Option handling
-===============
+Other formats, such as STL, can be loaded into Gmsh and then
+saved in the Gmsh format to enable them to be imported into
+the mesher.
 
-meshSetDefaultOptions()
+#### meshReadGmsh()
 
-Mesh line generation options
-----------------------------
-
-Global options summary:
- 
-  options.mesh.
-  
-  --------------------------------------------------------------------------------------------------
-  Name             Type               Default       Units Range
-  --------------------------------------------------------------------------------------------------
-  meshType         string             'CUBIC'       -     'CUBIC', 'UNIFORM', 'NONUNIFORM'
-  lineAlgorithm    string             'OPTIM1'      -     'OPTIM1', 'OPTIM2'
-  costAlgorithm    string             'RMS'         -     'RMS', 'MEAN', 'MAX'
-  epsCoalesceLines real               1e-4          ?     >=0
-  useMeshCompVol   boolean            true          -     true, false
-  compVolName      string             'CompVolume'  -     
-  compVolAABB      real 1x6 vector    []            m     >=-Inf, <=Inf 
-  compVolIsTight   boolean 1x6 vector all false     -     true , false
-  useDensity       boolean            true          -     true, false
-  Dmin             real               10            -     >0
-  Dmax             real               10            -     >0>=Dmin  
-  dmin             real               []            m     >0
-  dmax             real               []            m     >0
-  epsCompVol       real               1e-6          ?     >=0
-  maxRatio         real               1.5           -     >=1
-  maxAspect        real               2.0           -     >=1
-  minFreq          real               1e6           Hz    >=0
-  maxFreq          real               3e9           Hz    >=0, >=minFreq
-  numFreqSamp      integer            50            -     >=1
-  maxOptimTime     real               5             s     >=0.0
-  maxOptimEvals    integer            10000         -     >=0
-  costFuncTol      real               1e-6          ?     >=0.0
-  isPlot           boolean            false         -     true, false
-  --------------------------------------------------------------------------------------------------
-
-  meshType - determines whether to use uniform or non-uniform mesh lines.
-  
-  lineAlgorithm - chooses the algorithm used for optimsiation of the location of the
-                  mesh lines.
-                  
-  costAlgorithm - chooses the cost function used in the optimisation of the mesh line
-                  locations.
-                  
-  epsCoalesceLines - tolerance [FIXME] below which constraint points are merged before the mesh line
-                     generation algorithm is run. Currently uses non-transistive algorithm so use with care!
-                     
-  useMeshCompVol - indicates the computational volume should be determined from the bounding
-                   box of a group contained in the input mesh.
-                   
-  compVolName - name of the mesh group to use for determining the computational volume. Only
-                effective when useMeshCompVol is true.
-                
-  compVolAABB - a row vector, [ x_lo y_lo z_lo x~_hi y_hi z_hi ], containing the bounding box
-                coordinates to use for the computational volume. Used if useMeshCompVol is false.
-                If empty and useMeshCompVol is false the minimal AABB of the objects to be mesh
-                is used as computational volume.
-
-  compVolIsTight - booleen vector indicating if lowest and highest mesh lines should be forced to be exactly
-                   conincident with the computational volume.
-
-  dmin - a real scalar specifying the minimum global mesh size of the computational volume. Used if useMeshCompVol is false.
- 
-  dmax - a real scalar specifying the maximum global mesh size of the computational volume. Used if useMeshCompVol is false.
-
-  epsCompVol - tolerance [FIXME]
-  
-  maxRatio - maximum cell size ratio between neighbouring cells.
-  
-  maxAspect - maximum cell aspect ratio to allow in the mesh.
-  
-  minFreq - minimum frequency for the mesh. Used to determine mesh line densities and waveform
-            parameters. 
-            
-  maxFreq - maximum frequency for the mesh. Used to determine mesh line densities and waveform
-            parameters. 
-            
-  numFreqSamp - number of frequency samples to use for evaluation of complex permittivities of
-                materials when maximum mesh sizes are being determined from material database
-                and mesh densities.
- 
-  maxOptTime - maximum time for optimisations used to determine mesh line locations.
-  
-  maxOptimEvals - maximum number of objective function evaluations for optimisations used to 
-                  determine mesh line locations.
-  
-  costFuncTol - stopping tolerance on cost functions used for optimisations used to 
-                  determine mesh line locations. 
-
-  isPlot - whether to plot mesh line statistics.
-  
-Per group option summary:
-
-  options.group().
-  
-  ------------------------------------------------------------------------------------------
-  Name                   Type     Default   Units Range
-  ------------------------------------------------------------------------------------------
-  materialName           string   'PEC'     -     -
-  useDensity             boolean  true      -     true, false
-  Dmin                   real     10.0      -     >0.0
-  Dmax                   real     20.0      -     >0.0, >=Dmax
-  dmin                   real     1e-2      m     >0.0
-  dmax                   real     1e-2      m     >0.0, >=dmin
-  weight                 real     1.0       -     >=-Inf, <=Inf
-  ------------------------------------------------------------------------------------------  
-
-  materialName - name of the material an object is composed of. Used for determining
-                 mesh density from material database.
-                 
-  useDensity - if true the mesh size limits for the group will be determined from the
-               specified mesh densities and the material properties of the object over
-               the range specified by the global minFreq and maxFreq parameters.
-              
-  Dmin - minimum mesh line density. Used if useDensity is true.
-              
-  Dmax - maximum mesh line density. Used if useDensity is true.  
-  
-  dmin - minimum mesh size. Used if useDensity is false.
-  
-  dmax - maximum mesh size. Used if useDensity is false.
-  
-  weight - weighting factor used for constraint points in this group.
-  
-Group mapping options
----------------------
-
-Global options summary:
- 
-  options.mesh.
-
-  options.mesh.
-  
-  --------------------------------------------------------------------------------------------------
-  Name                          Type            Default       Units Range
-  --------------------------------------------------------------------------------------------------
-
-  --------------------------------------------------------------------------------------------------
-  
-Per group option summary:
-
-  options.group().
-  
-  ------------------------------------------------------------------------------------------
-  Name                   Type     Default     Units Range
-  ------------------------------------------------------------------------------------------
-  type                   string   'VOLUME'    -     'VOLUME', 'SURFACE', 'CLOSED_SURFACE' , 
-                                                    'WIRE', 'BBOX', 'NODE' 
-  isValidNormals         boolean  false       -     true, false
-  isInvertNormals        boolean  false       -     true, false
-  precedence             integer  1           -     >=0
-  rayDirections          string   'xyz'       -     'x', 'y', 'z', 'd', 'e', 'f'
-  reduceMethod           string   'CONCENSUS' -     'CONCENSUS', 'MAJORITY', 'DICTATOR'
-  splitMethod            string   'SAH'       -     'SAH', 'MEDIAN', 'EQUAL'
-  maxDepth               integer  15          -     >0
-  minNumElemPerNode      integer  5000        -     >0
-  maxNumElemPerNode      integer  Inf         -     >0, >minNumElemPerNode
-  isPlot                 boolean  false       -     true, false
-  isInfiniteRay          boolean  true        -     true, false
-  epsParallelRay         real     1e-12       ?     >0
-  isTwoSidedTri          boolean  true        -     true, false
-  isIncludeRayEnds       boolean  true        -     true, false
-  epsRayEnds             real     1e-6        ?     >0.0
-  epsUniqueIntersection  real     1e-6        ?     >0.0
-  isUseInterpResolver    boolean  false       -     true, false
-  epsResolver            real     1e-12       ?     >0
-  isUnresolvedInside     boolean  true        -     true, false
-  ------------------------------------------------------------------------------------------
-
-  type - type of object used to determine appropriate mapping algorithm.
- 
-         'VOLUME' - group is a VOLUME object desrcibed by a closed surface in the unstructured mesh group.
-                   Closedness is assumed but not check.
-
-         'SURFACE' - group is an open or closed surface object.
-
-         'CLOSED_SURFACE' - group is a closed surface (shell). If the surface is known to be closed
-                            a more robust algorithm is applied: The group is first mapped as a volume
-                            object and then the faces of the mapped volume object are identified. This
-                            approach is less susceptible to meshing artefacts than the general surface
-                            algorithm.
-
-         'WIRE' - group is a line object.
-
-         'BBOX' - group is a bounding box oject. Only the bounding box of the object is utilized. This is
-                  used for defining the computational volume in the input mesh and can be used to define
-                  source plane, observers volumes etc.  
-
-         'NODE' - group is a set of nodes.
-
-  isValidNormals - indicates the normals of the mesh elements in this group can be
-                   assumed to be valid, i.e. for a closed object they are all outward
-                   normals according to a clockwise node number order convention. This helps
-                   in the detection of some singularities in the group mapping.
-                   
-  isInvertNormals - indicates the normals of the mesh elements in this group can be
-                    assumed to be valid but are inverted, i.e. for a closed object they 
-                    are all inward normals according to a clockwise node number order convention.
-  
-  precedence - objects are mapped onto the structured mesh in the order of their assigned 
-               precedence, lowest first. Objects with the same precedence are mapped in the
-               order they appear in the unstructured mesh. 
-               
-  rayDirections - direction to cast rays through a volume object. This is a string composed of 
-                  the characters 'x', 'y', 'z', 'e', 'f'  and 'g'. Each character should appear 
-                  at most once.
-                  
-                  'x', 'y' and 'z' cause rays parallel to the respective direction to be cast
-                  along each cell centre from the lower group AABB face to the corresponding upper
-                  group AAB face. The calculation is vectorised in the normal direction and
-                  much faster than with 'd', 'e' and 'f'. However, it can be more susceptible to
-                  singularity arefacts.
-                  
-                  'd', 'e' and 'f' cause divergent rays to be cast to every cell centre on the mesh
-                  from a point outside the objects bounding box along a diagonal through the bounding
-                  box corners with the different cases corresponding to different diagonals of the
-                  bounding box. The calculation is not vectorised and is much slower than using
-                  'x', 'y' and 'z'. However if is probably more robust.
-                  
-  reduceMethod - If more than one direction is specified, e.g. 'xyz' then the insideness for a cell 
-                 centre is determined by a vote between the results for each direction:
-                  
-                   CONCENSUS - cell is inside if all directions agree.
-                   MAJORITY  - cell is inside if half or more of directions agree.
-                   DICTATOR  - cell is inside if any direction identifies it.
-                  
-  splitMethod - partitioning method to use in BVH generation. 
-                'SAH'    - use surface area heuristic 
-                'MEDIAN' - split according to median ???? [FIXME]
-                'EQUAL'  - split elements equally
-
-  maxDepth - maximum depth of BVH tree.
-  
-  minNumElemPerNode - minimum number of elements in node of BVH tree. Advisory.
-  
-  maxNumElemPerNode - maximum number of elements in node of BVH tree. Advisory.
-  
-  isPlot - whether to plot statistics.
-  
-  epsParallelRay - tolerance [FIXME] on determining if a ray and elemenet are parallel and
-                   therefore don't intersect. must be much less than epsRayEnds
-
-  epsRayEnds - tolerance [FIXME] for determining an intersection at ends of a finite ray.
-
-  epsUniqueIntersection - tolerance [FIXME] for determining unique interactions of rays with elements.
-                          Intersections with t parameters within this tolerance will be assumed
-                          to be the equivalent.
-
-  isUseInterpResolver - determine whether to use interpolation resolver for volume mapper.
-
-  epsResolver - tolerance on proximity of intersection at which to invoke resolver.
-  
-  isUnresolvedInside - default insideness for unresolved cells in volume object if
-                       resolver is not used.
-
-  [FIXME] These probably shouldn't be exposed:
-  
-  isInfiniteRay - 
-  
-  isTwoSidedTri - 
-
-  isIncludeRayEnds - 
-  
-Export options
---------------
-
-  Vulture export options summary:
-  
-  options.vulture.
-
-  -----------------------------------------------------------------------------
-  Name            Type     Default           Units Range
-  -----------------------------------------------------------------------------
-  useMaterialNames boolean  true              -     true, false
-  -----------------------------------------------------------------------------
-  
-  useMaterialNames - if true the material name is used to tag the groups elements
-                     in the Vulture mesh, otherwise the group name is used.
+    [ mesh ] = meshReadGmsh( mshFileName , groupFormat )
     
-Unstructured mesh import
-========================
+#### meshReadAmelet()
 
-  meshReadAmelet()
-  meshReadGmsh()
-  meshReadSurf()
+    [ mesh ] = meshReadAmelet( h5FileName , meshGroupName , meshName )
 
-Unstructured mesh export
-========================
+The functions requires that the [HDF5][] command line tools 
+are installed on the system.
 
-  meshWriteGmsh()
-  meshWriteSurf()
-  meshWriteWire()
+#### meshReadSurf()
 
-  meshWriteLines2Gmsh.m
+    [ mesh ] = meshReadSurf( surfFileName , groupName )
+
+### Unstructured mesh export
+
+Unstructured meshes can be exported in the following formats:
+
+1. The [Gmsh][] ASCII format version 2.
+2. The [CONCEPT-II][] surface/wire format. 
+
+#### meshWriteGmsh()
+
+    meshWriteGmsh( mshFileName , mesh  , groupNames )
+
+#### meshWriteSurf() and meshWriteWire()
+
+    meshWriteSurf( surfFileName , mesh , groupNames )
+    meshWriteWire( wireFileName , mesh , groupNames )
     
-Unstructured mesh conversion
-============================
+### Unstructured mesh conversion
 
-  meshAmelet2Gmsh()
-  meshGmsh2Concept()    
-  meshGmsh2Surf()
-  meshGmsh2Wire()
-  meshSurf2Gmsh()
-  
-Structured mesh export
-======================
+For convenience a number of functions are provided to
+convert meshes between different formats. 
 
-  meshWriteVulture()
+#### meshAmelet2Gmsh()
+
+    meshAmelet2Gmsh( mshFileName , h5FileName , meshGroupName , meshName )
+    
+#### meshGmsh2Concept()
+
+    meshGmsh2Concept( mshFileName )
+    
+#### meshGmsh2Surf() and meshGmsh2Wire()
+
+    meshGmsh2Surf( surfFileName , mshFileName , groupNames )
+    meshGmsh2Wire( wireFileName , mshFileName , groupNames )
+    
+#### meshSurf2Gmsh()
+
+    meshSurf2Gmsh( mshFileName , surfFileName , groupName )
+
+## Saving and loading unstructured meshes
+
+Meshes in the native AEG_Mesher format can be saved in 
+mat file format.
  
-Mesh tools
-==========
+#### meshSaveMesh()
 
-  meshMergeUnstructured()
-  meshSmesh2Unmesh()
-  meshPerimeter2Geo()
+    meshSaveMesh( matFileName , mesh )
+
+#### meshLoadMesh()
+
+    [ mesh ] = meshLoadMesh( matFileName )
+    
+## Unstructured mesh utilities
+
+#### meshMergeUnstructured()
+
+    [ mesh ] = meshMergeUnstructured( mesh1 , mesh2 )
+    
+#### meshCylinders()
+
+    [ mesh ] = meshCylinders( endPoints , radius , numSides )
+    
+#### meshSpheres()
+
+    [ mesh ] = meshSpheres( centres , radii , numSides )
+    
+# Structured mesh generation
+
+## Overview
+
+Meshing a physical structure proceeds according to the following steps:
+
+1. Import/create an unstructured mesh.
+2. Set the meshing options - both global and for each physical group.
+3. Generate a set of mesh lines.
+4. Map each physical object onto the structured mesh.
+5. Export the structured mesh to the required format.
+
+The default meshing options can be set using
+
+    options = meshSetDefaultOptions( numGroups [ , optName , optValue ] )
+
+where `numGroups` is the number of groups in the unstructured mesh. For an
+unstructured mesh stored in a structure called `unmesh` this can
+be found using
+
+    numGroups = unmesh.numGroups
+
+The optional arguments are **pairs** of option name and values pair for 
+per-group options that over-rides the built-in defaults.
+
+The options are returned in a structure which has two members:
+
+1. A struct-array called `groups` of dimension equal to the 
+   number of groups. Each member of this struct-array is in turn a 
+   structure holding the meshing options for that group.
+2. Another structure called `mesh` which contains the global meshing 
+   options and the options to be applied to the free space around the objects. 
+
+The options are described in detail in the following sections. The index of the 
+group in `options.groups()` should match the index of the group in the input 
+mesh. The helper function `meshGetGroupIndices()` can be used to get the
+indices of particular named groups:
+
+    groupIndices = meshGetGroupIndices( groupNamesToMap )
+
+    options.groups(groupIdx).<perGroupOptionName> = <optionValue>
+ 
+    options.mesh.<globalOptionName> = <optionValue>
+
+    [ lines ] = meshCreateLines( unmesh , groupNamesToMap , options );
+
+    [ smesh ] = meshMapGroups( unmesh , groupNamesToMap , lines , options );
+
+
+## Mesh line generation options
+
+### Global options
+ 
+options.mesh.<optionName>
+
+Name             | Type         | Default      | Units   | Range
+:----------------|:------------:|:------------:|---------|:--------------------------------
+meshType         | string       | 'CUBIC'      | n/a     | 'CUBIC', 'UNIFORM', 'NONUNIFORM'
+useMeshCompVol   | boolean      | true         | n/a     | true, false
+compVolName      | string       | 'CompVolume' | n/a     |
+compVolAABB      | real(1x6)    | []           | m       | >=-Inf, <=Inf 
+epsCompVol       | real         | 1e-6         | [FIXME] | >=0
+compVolIsTight   | boolean(1x6) | all false    | n/a     | true , false
+useDensity       | boolean      | true         | n/a     | true, false
+dmin             | real         | []           | m       | >0
+dmax             | real         | []           | m       | >0
+maxRatio         | real         | 1.5          | n/a     | >=1
+maxAspect        | real         | 2.0          | n/a     | >=1
+Dmin             | real         | 10           | n/a     | >0
+Dmax             | real         | 10           | n/a     | >0, >=Dmin
+minFreq          | real         | 1e6          | Hz      | >=0
+maxFreq          | real         | 3e9          | Hz      | >=0, >=minFreq
+numFreqSamp      | integer      | 50           | n/a     | >=1
+epsCoalesceLines | real         | 1e-4         | [FIXME] | >=0
+lineAlgorithm    | string       | 'OPTIM1'     | n/a     | 'OPTIM1', 'OPTIM2'
+costAlgorithm    | string       | 'RMS'        | n/a     | 'RMS', 'MEAN', 'MAX'
+costFuncTol      | real         | 1e-6         | [FIXME] | >=0.0
+maxOptimTime     | real         | 5            | s       | >=0.0
+maxOptimEvals    | integer      | 10000        | n/a     | >=0
+isPlot           | boolean      | false        | n/a     | true, false
+
+#### meshType
+
+Determines whether to use uniform or non-uniform mesh lines.
+
+#### useMeshCompVol
+
+Indicates the computational volume should be determined from the bounding
+box of a group contained in the input mesh.
+
+#### compVolName
+
+Name of the mesh group to use for determining the computational volume. Only
+effective when useMeshCompVol is true.
+
+#### compVolAABB
+
+Provides the AABB as row vector, [ x_lo y_lo z_lo x~_hi y_hi z_hi ], containing the bounding box
+coordinates to use for the computational volume. Used if useMeshCompVol is false.
+If empty and useMeshCompVol is false the minimal AABB of the objects to be mesh is used as 
+computational volume.
+
+#### epsCompVol
+
+Tolerance [FIXME].
+
+#### compVolIsTight
+
+Booleen vector indicating if lowest and highest mesh lines should be forced to be exactly
+conincident with the computational volume.
+
+#### useDensity
+
+Boolean indicating whether or not to use density based mesh line creation. If false
+absolute mesh size much be specified using dmin and dmax. If true then mesh lines
+density bounds should be specified using Dmin and Dmax. The mesh size constraints
+for the computational voulem will be determined from the specified mesh densities 
+and the material properties of the object over the range specified by the global 
+minFreq and maxFreq parameters.
+
+#### dmin 
+
+A real scalar specifying the minimum global mesh size of the computational volume. Used if useMeshCompVol is false
+and useDensity is false.
+
+#### dmax
+
+A real scalar specifying the maximum global mesh size of the computational volume. Used if useMeshCompVol is false
+and useDensity is false.
+
+#### maxRatio
+
+Maximum cell size ratio between neighbouring cells.
+
+#### maxAspect
+
+Maximum cell aspect ratio to allow in the mesh.
+
+#### Dmin 
+
+A real scalar specifying the minimum global mesh line density of the computational volume. Used if useMeshCompVol is false
+and useDensity is true.
+
+#### Dmax
+
+A real scalar specifying the maximum global mesh line density of the computational volume. Used if useMeshCompVol is false
+and useDensity is true.
+
+#### minFreq
+
+Minimum frequency for the mesh. Used to determine mesh line densities and waveform parameters if useDensity is true.
+
+#### maxFreq
+
+Maximum frequency for the mesh. Used to determine mesh line densities and waveform parameters if useDensity is true.
+
+#### numFreqSamp 
+
+Number of frequency samples to use for evaluation of complex permittivities of
+materials when the maximum mesh sizes are being determined from material database and 
+mesh densities. Used if useDensity is true.
+
+#### epsCoalesceLines
+
+Tolerance [FIXME] below which constraint points are merged before the mesh line
+generation algorithm is run. Currently uses non-transistive algorithm so use with care!
+
+#### lineAlgorithm
+
+Chooses the algorithm used for optimsiation of the location of the mesh lines.
+[FIXME] 'OPTIM1', 'OPTIM2'.
+
+#### costAlgorithm
+
+Chooses the cost function used in the optimisation of the mesh line locations. The cost
+function can attempt to minimise the root-mean-square ('RMS'), mean ('MEAN') or maximum ('MAX')
+deviation between the mesh lines and the constraints points. The default is 'RMS'.
+
+#### costFuncTol
+
+Stopping tolerance on the cost functions used for optimisations used to determine mesh line locations.
+[FIXME] units?
+
+#### maxOptTime
+
+Maximum time in seconds for optimisations used to determine mesh line locations. After this time the best
+solution so far will be used.
+
+#### maxOptimEvals
+
+Maximum number of objective function evaluations for optimisations used to 
+determine mesh line locations. After this number of evaluations the best
+solution so far will be used.
+
+#### isPlot
+
+Determines whether to plot mesh line generation statistics.
+
+### Per group options
+
+options.group(groupIdx).<optionName>
+
+Name         | Type    | Default | Units | Range
+:------------|:-------:|:-------:|:-----:|:----------------
+materialName | string  | 'PEC'   | n/a   | arbitrary string
+useDensity   | boolean |  true   | n/a   | true, false
+dmin         | real    | 1e-2    | m     | >0.0
+dmax         | real    | 1e-2    | m     | >0.0, >=dmin
+Dmin         | real    | 10.0    | n/a   | >0.0
+Dmax         | real    | 20.0    | n/a   | >0.0, >=Dmax
+weight       | real    | 1.0     | n/a   | >=-Inf, <=Inf
+
+#### materialName
+
+Name of the material an object is composed of. Used for determining
+mesh density from material database if useDensity is true. The material
+name must be in the material database.
+
+#### useDensity
+
+Boolean indicating whether or not to use density based mesh line creation for a
+group. If false absolute per-group mesh size much be specified using dmin and dmax. 
+If true then per-group mesh lines density bounds should be specified using Dmin and Dmax. 
+The mesh size constraints for the computational voulem will be determined from the 
+specified mesh densities and the material properties of the group over the range 
+specified by the global minFreq and maxFreq parameters.
+
+#### dmin 
+
+A real scalar specifying the minimum mesh size of the group. Used per-group option 
+useDensity is false.
+
+#### dmax
+
+A real scalar specifying the maximum mesh size of the group. Used if per-group option
+useDensity is false.
+
+#### Dmin 
+
+A real scalar specifying the minimum mesh line density of the group. Used if per-group option
+useDensity is true.
+
+#### Dmax
+
+A real scalar specifying the maximum mesh line density of the group. Used if per-group option
+useDensity is true.
+
+#### weight
+
+Weighting factor used for constraint points in this group.
+
+## Group mapping options
+
+### Global options
+ 
+options.mesh.<optionName>
   
-Structured mesh generation
-==========================
+Name | Type | Default | Units | Range     
+:----|:----:|:-------:|:-----:|:----------
+     |      |         |       |  
 
-  meshGetGroupIndices()
-  meshCreateLines()
-  meshMapGroups()
+### Per group options
 
-  These are internal functions:
-  
-  meshCalcElemProp()
-  meshBuildFBVH()
-  meshIntersectFBVH()
-  meshLineMapGroup()
-  meshSurfaceMapGroup()
-  meshSurfaceMapParallelRays() 
-  meshVolumeGroup2SurfaceGroup(0
-  meshVolumeMapGroup()
-  meshVolumeMapDivergentRays()
-  meshVolumeMapParallelRays() 
-  meshResolveRayVolume()
+options.group(groupIdx).<optionName>
 
-Testing
-=======
+Name                  | Type    | Default     | Units   | Range
+:---------------------|--------:|:-----------:|:-------:|:--------------------------------------------------------------
+type                  | string  | 'VOLUME'    | n/a     | 'VOLUME', 'SURFACE', 'CLOSED_SURFACE' , 'WIRE', 'BBOX', 'NODE' 
+precedence            | integer | 1           | n/a     | >=0
+rayDirections         | string  | 'xyz'       | n/a     | 'x', 'y', 'z', 'd', 'e', 'f'
+reduceMethod          | string  | 'CONCENSUS' | n/a     | 'CONCENSUS', 'MAJORITY', 'DICTATOR'
+epsParallelRay        | real    | 1e-12       | *FIXME* | >0
+epsRayEnds            | real    | 1e-6        | *FIXME* | >0.0
+epsUniqueIntersection | real    | 1e-6        | *FIXME* | >0.0
+isUseInterpResolver   | boolean | false       | n/a     | true, false
+epsResolver           | real    | 1e-12       | *FIXME* | >0
+isUnresolvedInside    | boolean | true        | n/a     | true, false
+isValidNormals        | boolean | false       | n/a     | true, false
+isInvertNormals       | boolean | false       | n/a     | true, false
+splitMethod           | string  | 'SAH'       | n/a     | 'SAH', 'MEDIAN', 'EQUAL'
+maxDepth              | integer | 15          | n/a     | >0
+minNumElemPerNode     | integer | 5000        | n/a     | >0
+maxNumElemPerNode     | integer | Inf         | n/a     | >0, >minNumElemPerNode
+isPlot                | boolean | false       | n/a     | true, false
+isInfiniteRay         | boolean | true        | n/a     | true, false [FIXME] Remove
+isTwoSidedTri         | boolean | true        | n/a     | true, false [FIXME] Remove
+isIncludeRayEnds      | boolean | true        | n/a     | true, false [FIXME] Remove
+
+Description:
+
+#### type
+
+Type of the mapped object in the structured mesh. The valid types depend on the groups 
+type in the unstructured mesh according to the table below. 
+ 
+type             | group type       | group type     | Description of mapped group 
+:----------------|:-----------------|:---------------|:------------------------------------------------
+                 | **Unstructured** | **Structured** |
+'VOLUME'         | 2                | 3              | volumetric object enclosed by the closed surface
+'SURFACE'        | 2                | 2              | open or closed surface
+'CLOSED_SURFACE' | 2                | 2              | closed surface (shell).
+'LINE'           | 1                | 1              | line.
+'POINT'          | 0, 1, 2 or 3     | 0              | set of all element nodes in the group
+'BBOX'           | 0, 1, 2 or 3     | 0              | bounding box of the group
+
+Notes:
+
+1. If the surface is known to be closed a more robust algorithm can
+   be applied by selecting the type 'CLOSED_SURFACE': The group is 
+   first mapped as a volume object and then the faces of the mapped 
+   volume object are identified. This approach is less susceptible 
+   to meshing artefacts than the general surface algorithm.
+2. Bounding boxes are used for defining the computational volume in 
+   the input mesh and can be used to define source plane, observers volumes etc.
+
+#### precedence
+
+Objects are mapped onto the structured mesh in the order of their assigned 
+precedence, lowest first. Objects with the same precedence are mapped in the
+order they appear in the unstructured mesh.
+ 
+[FIXME] This is nolonger important for the mapper, but could still be relevent for
+exporters.
+
+#### rayDirections
+
+Direction to cast rays through a volume object. This is a string composed of 
+the characters 'x', 'y', 'z', 'e', 'f'  and 'g'. Each character should appear 
+at most once. 'x', 'y' and 'z' cause rays parallel to the respective direction to be cast
+along each cell centre from the lower group AABB face to the corresponding upper
+group AAB face. The calculation is vectorised in the normal direction and
+much faster than with 'd', 'e' and 'f'. However, it can be more susceptible to
+singularity arefacts. 'd', 'e' and 'f' cause divergent rays to be cast to every cell centre on the mesh
+from a point outside the objects bounding box along a diagonal through the bounding
+box corners with the different cases corresponding to different diagonals of the
+bounding box. The calculation is not vectorised and is much slower than using
+'x', 'y' and 'z'. However if is probably more robust.
+
+#### reduceMethod
+
+If more than one direction is specified, e.g. 'xyz' then the insideness for a cell 
+centre is determined by a vote between the results for each direction:
+
+reduceMethod | Outcome
+:------------|--------------------------------------------------------
+'CONCENSUS'  | cell is inside if __all__ directions agree.
+'MAJORITY'   | cell is inside if __half or more__ of directions agree.
+'DICTATOR'   | cell is inside if __any__ direction identifies it.
+
+#### epsParallelRay
+
+Tolerance [FIXME] on determining if a ray and elemenet are parallel and
+therefore don't intersect. It must be much less than epsRayEnds!
+
+#### epsRayEnds
+
+Tolerance [FIXME] for determining an intersection at ends of a finite ray.
+
+#### epsUniqueIntersection
+
+Tolerance [FIXME] for determining unique interactions of rays with elements.
+Intersections with t parameters within this tolerance will be assumed to be the equivalent.
+
+#### isUseInterpResolver
+
+Determine whether to use interpolation resolver for volume mapper.
+
+#### epsResolver
+
+Tolerance on proximity of intersection at which to invoke resolver.
+
+#### isUnresolvedInside
+
+Default insideness for unresolved cells in volume object if resolver is not used.
+
+#### isValidNormals
+
+Indicates the normals of the mesh elements in this group can be
+assumed to be valid, i.e. for a closed object they are all outward
+normals according to a clockwise node number order convention. This helps
+in the detection of some singularities in the group mapping.
+
+#### isInvertNormals
+
+Indicates the normals of the mesh elements in this group can be
+assumed to be valid but are inverted, i.e. for a closed object they 
+are all inward normals according to a clockwise node number order convention.
+            
+#### splitMethod
+
+Partitioning method to use in BVH generation.
+
+splitMethod | Algorithm
+:-----------|:--------------------------------------------
+'SAH'       | use a surface area heuristic 
+'MEDIAN'    | split according to the median ?what? [FIXME]
+'EQUAL'     | split elements equally 
+ 
+#### maxDepth
+
+Maximum depth of BVH tree.
+
+#### minNumElemPerNode
+
+Minimum number of elements in node of BVH tree. Advisory.
+
+#### maxNumElemPerNode
+
+Maximum number of elements in node of BVH tree. Advisory.
+
+#### isPlot
+
+Whether to plot statistics.
+
+#### isInfiniteRay
+
+[FIXME] Remove.
+
+#### isTwoSidedTri
+
+[FIXME] Remove.
+
+#### isIncludeRayEnds
+
+[FIXME] Remove.
+
+# Structured mesh tools
+
+    [mesh ] = meshSmesh2Unmesh( smesh )
+
+# Structured mesh export
+
+## Vulture
+
+    meshWriteVulture( mshFileName , smesh , options )
+
+### Vulture export options
+
+options.vulture.<optionName>
+
+Name             | Type    | Default | Units | Range
+:----------------|: ------:|:-------:|:-----:|:-----------
+useMaterialNames | boolean | true    | n/a   | true, false
+
+#### useMaterialNames
+
+If true the material name is used to tag the groups elements
+in the Vulture mesh, otherwise the group name is used.
+ 
+# Testing
 
   meshTestCreateLines()
   meshTestDriver()
@@ -436,217 +628,116 @@ Testing
   meshTestMapGroups()
   meshTestResolveRayVolume()
   meshTimeIntersections()
-    
-Tutorial example
-================
 
-View the input geometry in Gmsh
+# References
 
-  $ gmsh cubesForNonLinearMesh.msh
-  
-Read the mesh into Octave/MATLAB:
-
-  [ mesh ] = meshReadGmshFast( 'cubesForNonLinearMesh.msh' );
-
-Define the objects group names to be meshed:
-
-  groupNames = mesh.groupNames;
-
-Set the default options for each group:
-
-  [ options ] = meshSetDefaultOptions( mesh.numGroups , 'useDensity' , false , 'dmin' , 5e-2 , 'dmax' , 10e-2 , 'isUseInterpResolver' , true );
-
-Modify global meshing options:
-
-  options.mesh.meshType = 'CUBIC';
-  options.mesh.lineAlgorithm = 'OPTIM1';
-  options.mesh.costAlgorithm = 'RMS';
-  options.mesh.epsCoalesceLines = 4e-3;
-  options.mesh.minFreq = 1e6;
-  options.mesh.maxFreq = 3e9;
-  options.mesh.isPlot = false;
-  options.mesh.epsCoalesceLines = 1e-4;
-  options.mesh.epsCompVol = 0;
-  options.vulture.useMaterialNames = false;
-
-Set group 1 (cube 1) as a surface PEC material, mapped using
-parallel rays in the x-direction:
-
-  options.group(1).type = 'SURFACE';
-  options.group(1).materialName = 'PEC';
-  options.group(1).rayDirections = 'x';
-
-Set group 2 (cube 2) as a solid PEC material, mapped using
-parallel rays in the y-direction:
-
-  options.group(2).type = 'VOLUME';
-  options.group(2).materialName = 'PEC';
-  options.group(2).rayDirections = 'y';
-
-Set group 3 (cube 3) as a solid PEC material, mapped using
-parallel rays in the z-direction:
-
-  options.group(3).type = 'VOLUME';
-  options.group(3).materialName = 'PEC';
-  options.group(3).rayDirections = 'z';
-
-Set group 4 (plane) as a surface PEC material, mapped using
-parallel rays in the x-direction:
-
-  options.group(4).type = 'SURFACE';
-  options.group(4).materialName = 'PEC';
-  options.group(4).rayDirections = 'x';
-
-Set group 5 as the computational volume:
-
-  options.group(5).type = 'BBOX';
-  options.group(5).materialName = 'FREE_SPACE';
-
-Create a set of uniform cubic mesh lines:
-
-  [ lines ] = meshCreateLines( mesh , groupNames , options );
-
-Write the mesh lines to an unstructured Gmsh mesh file:
-
-  meshWriteLines2Gmsh( 'lines.msh' , lines );
-
-View mesh lines together with input geometry 
-
-  $ gmsh cubesForNonLinearMesh.msh
- 
-    [File]->[Merge]->lines.msh
-  
-Write both mesh lines and input geometry to single Gmsh mesh:
-
-  meshWriteLines2Gmsh( 'linesAndGroups.msh' , lines , mesh );
-
-  $ gmsh linesAndGroups.msh
-
-Map object groups onto the structured mesh
-
-  [ smesh ] = meshMapGroups( mesh , groupNames , lines , options );
-
-[ unmesh ] = meshSmesh2Unmesh( smesh );
-
-Convert mapped structured mesh to unstructured format so it can
-be viewed in Gmsh:
-
-  meshWriteGmshFast( 'mappedGroups.msh' , unmesh );
- 
-  $ gmsh mappedGroups.msh
-  
-    [File]->[Merge]->cubesForNonLinearMesh.msh
-
-Export structured mesh to a Vulture mesh:
-
-  meshWriteVulture( 'vulture.mesh' , smesh , options );
-
-Convert Vulture mesh to Gmsh representation for viewing:
-
-  $ gvulture -m -p vulture.mesh
-  $ gmsh mesh.msh
-  
-    [File]->[Merge]->cubesForNonLinearMesh.msh
-
-
-References
-==========
-
-[AMELET1.5] Cyril Giraudon, "Amelet-HDF Documentation", Release 1.5.3, AxesSim, 
-            15 November 2011. 
-            URL: http://amelet-hdf.googlecode.com/files/AmeletHDF-1.5.3.pdf
+[AMELET-HDF][] Cyril Giraudon, "Amelet-HDF Documentation", Release 1.5.3, AxesSim, 15 November 2011.
             
 [Berens2013] Project report.
 
 [Berens2014]] APM article.
-
             
-Appendix A: Unstructured mesh data structure
-============================================
+# Appendix A: Unstructured mesh format
 
-Modelled on AMELET HDF Version 1.5.x specification [AMELET1.5].
+An unstructured mesh is represented by a structure with the following members:
 
-% mesh - structure containing an unstructured mesh modelled on the AMELET-HDF format [1]:
-%
-%        .dimension         - integer, dimension of mesh: 1, 2 or 3.
-%        .numNodes          - integer, number of nodes.
-%        .nodes()           - real(dimension,numNodes), array of node coordinates [arb].
-%                             nodes(i,j) gives the i-th coordinate of the j-th node.
-%        .numElements       - integer, number of elements.
-%        .elementTypes()    - integer(1,numElements), array of AMELET-HDF element types,
-%                             Some common types are:
-%
-%                             1   - bar2
-%                             11  - tri3
-%                             13  - quad4
-%                             101 - tetra4
-%                             104 - hexa8
-%                             199 - point (extension, not in AMELET-HDF)
-%
-%        .elements()        - integer(var,numElements), sparse array of element node indices.
-%                             elements(i,j) gives the i-th node index (into the nodes array) of 
-%                             the j-th element.
-%        .numGroups         - integer, number of groups.
-%        .groupNames{}      - string{numGroups}, cell array of group names.
-%        .groupTypes()      - integer(numGroups), array of AMELET-HDF group types:
-%
-%                             0 - node
-%                             1 - edge
-%                             2 - face
-%                             3 - volume
-%
-%        .groups()          - integer(var,numGroups), sparse array of node/element indices.
-%                             groups(i,j) gives the index of the i-th element (into the elements
-%                             array) of the j-th group.
-%        .numGroupGroups    - integer, number of groups of groups.
-%        .groupGroupNames{} - string{numGroupGroups}, cell array of group group names.
-%        .groupGroups()     - integer(var,numGroupGroup), sparse array of group of group indices.
-%                             groupGroup(i,j) gives the i-th index (into the groups array) of the
-%                             j-th group of groups. Hierarchical group of groups are NOT SUPPORTED.
+Member name     | Types                      | Description
+:---------------|:---------------------------|:----------------------------------------------
+dimension       | integer                    | dimension of the mesh 1,2 or 3
+numNodes        | integer                    | number of nodes
+nodes           | real(dimension,numNodes)   | node coordinates in metres
+numElements     | integer                    | number of elements
+elementTypes    | integer(1,numElements)     | type of each element
+elements        | integer(var,numElements)   | sparse array of element's node indices
+numGroups       | integer                    | number of groups
+groupNames      | string{numGroups}          | cell-array of group names
+groupTypes      | integer(numGroups)         | type (dimensionality) of each group
+groups          | integer(var,numGroups)     | sparse array of group's element indices
+numGroupGroups  | integer                    | number of groups of groups
+groupGroupNames | string{numGroupGroups}     | cell-array of group of groups names
+groupGroups     | integer(var,numGroupGroup) | sparse array of group of group's group indices
 
-            
-Appendix B: Structured mesh data structure
-==========================================  
+Notes:
 
-% smesh - structure containing a structured mesh modelled on the AMELET-HDF format [1]:
-%
-%        .dimension         - integer, dimension of mesh: 1, 2 or 3.
-%        .x()               - real(Nx) vector of mesh line coordinates in x-direction.
-%        .y()               - real(Ny) vector of mesh line coordinates in y-direction.
-%        .z()               - real(Nz) vector of mesh line coordinates in z-direction.
-%        .numGroups         - integer, number of groups.
-%        .groupNames{}      - string{numGroups}, cell array of group names.
-%        .groupTypes()      - integer(numGroups), array of AMELET-HDF group types:
-%
-%                             0 - node
-%                             1 - edge
-%                             2 - face
-%                             3 - volume
-%
-%        .groups{}          - cell array of bounding boxes of structured mesh elements for
-%                             each group. groups{groupIdx} is a nx3 or nx6 array of structured mesh
-%                             indices of the bounding box corners of the elements in the group. For
-%                             node groups only one coordinate is required (BBox is degenerate).
-%                              
-%                             For group type 0 (node): groups{groupIdx} is numNodesInGroup x 3 array
-%                                                      groups{groupIdx}(nodeIdx,coordIdx)
-%                                                      coordIdx = 1: i
-%                                                      coordIdx = 2: j
-%                                                      coordIdx = 3: k
-%
-%                             For all other group types: groups{groupIdx} is numBBoxInGroup x 6 array
-%                                                        groups{groupIdx}(bboxIdx,coordIdx)
-%                                                        coordIdx = 1: ilo
-%                                                        coordIdx = 2: jlo
-%                                                        coordIdx = 3: klo
-%                                                        coordIdx = 4: ihi
-%                                                        coordIdx = 5: jhi
-%                                                        coordIdx = 6: khi  
-%                                                        Boundng box can be single element (edge,face,cell)
-%                                                        or multiple elements (line,surface,volume).
-%              
-%        .numGroupGroups    - integer, number of groups of groups.
-%        .groupGroupNames{} - string{numGroupGroups}, cell array of group group names.
-%        .groupGroups()     - integer(var,numGroupGroup), sparse array of group of group indices.
-%                             groupGroup(i,j) gives the i-th index (into the groups array) of the
-%                             j-th group of groups. Hierarchical group of groups are NOT SUPPORTED.
+* nodes(i,j) gives the i-th coordinate of the j-th node.
+* elements(i,j) gives the i-th node index (into the nodes array) of the j-th element.
+* groups(i,j) gives the index of the i-th element (into the elements array) of the j-th group.
+* groupGroup(i,j) gives the i-th index (into the groups array) of the j-th group of groups.
+* Hierarchical group of groups are **not supported**.
+
+The supported element types are:
+
+Element type number | Type tag | Dimension | Number of nodes
+:-------------------|:--------:|:---------:|:--------------:
+1                   | bar2     | 1         | 2
+11                  | tri3     | 2         | 3
+13                  | quad4    | 2         | 4
+101                 | tetra4   | 3         | 4
+104                 | hex8     | 3         | 8
+199                 | node1    | 0         | 1
+
+The supported group types are:
+
+Group type number | Type of elements
+:-----------------|:----------------
+0                 | nodes
+1                 | linear
+2                 | surface
+3                 | volume
+
+# Appendix B: Structured mesh format
+
+A structured mesh is represented by a structure with the following members:
+
+Member name     | Types                      | Description
+:---------------|:---------------------------|:----------------------------------------------
+dimension       | integer                    | dimension of the mesh 1,2 or 3
+x               | real(numXLines)            | x-coordinates of mesh lines
+y               | real(numYLines)            | y-coordinates of mesh lines
+z               | real(numZLines)            | z-coordinates of mesh lines
+numGroups       | integer                    | number of groups
+groupNames      | string{numGroups}          | cell-array of group names
+groupTypes      | integer(numGroups)         | type (dimensionality) of each group
+groups          | array{numGroups}(nx6)      | cell-aaray of elements bounding boxes
+numGroupGroups  | integer                    | number of groups of groups
+groupGroupNames | string{numGroupGroups}     | cell-array of group of groups names
+groupGroups     | integer(var,numGroupGroup) | sparse array of group of group's group indices
+
+Notes:
+
+* groups{groupIdx} is a (numElementsInGroup x 6) real array of structured mesh indices of the
+  bounding box corners of the elements in the group. Each row in the array takes the form
+  [xlo,ylo,zlo,xhi,yhi,zhi]. The bounding box can be a single element (edge,face,cell) or 
+  multiple elements (line,surface,volume). 
+* In most cases the bounding coordinates much be integers; however floating indices can be used
+  to reference positions within a structured mesh cell. For example, [1.5,2.5,3.5,1.5,2.5,3.5]
+  is the point in the centre of the cell with lowest node indices (1,2,3). 
+* Hierarchical group of groups are **not supported**.
+
+The supported group types are:
+
+Group type number | Type of elements
+:-----------------|:----------------
+0                 | nodes
+1                 | linear
+2                 | surface
+3                 | volume
+
+
+
+[Gmsh]: http://geuz.org/gmsh
+[AMELET-HDF]: https://code.google.com/p/amelet-hdf
+[CONCEPT-II]: http://www.tet.tuhh.de/concept/?lang=en
+[HDF5]: http://www.hdfgroup.org/HDF5
+[Dr Ian Flintoft]: http://www.elec.york.ac.uk/staff/idf1.html
+[AEG]: http://www.elec.york.ac.uk/research/physLayer/appliedEM.html
+[Gmsh]: http://geuz.org/gmsh
+[AMELET-HDF]: https://code.google.com/p/amelet-hdf
+[Octave]: http://www.gnu.org/software/octave
+[MATLAB]: http://www.mathworks.co.uk/products/matlab
+[Vulture]: https://bitbucket.org/uoyaeg/vulture
+[FDTD]: http://en.wikipedia.org/wiki/Finite-difference_time-domain_method
+[HDF5]: http://www.hdfgroup.org/HDF5
+[nlopt]: http://ab-initio.mit.edu/wiki/index.php/NLopt
+[CONCEPT-II]: http://www.tet.tuhh.de/concept/?lang=en
+
