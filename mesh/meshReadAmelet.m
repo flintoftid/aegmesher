@@ -123,7 +123,7 @@ function [ mesh ] = meshReadAmelet( h5FileName , meshGroupName , meshName )
   mesh.groupGroups = [];
   
   % Read in the nodes.
-  tic();
+  tstart = cputime;
   tmpFileName = tempname;
   cmd = sprintf( 'h5totxt -d "mesh/%s/%s/nodes" -s "," -o "%s" "%s"' , meshGroupName , meshName , tmpFileName , h5FileName );
   [ status , output ] = system( cmd );
@@ -134,10 +134,10 @@ function [ mesh ] = meshReadAmelet( h5FileName , meshGroupName , meshName )
   mesh.numNodes = size( mesh.nodes , 2 );
   mesh.dimension = size( mesh.nodes , 1 );
   delete( tmpFileName );
-  fprintf( 'Read %d nodes from %s in %.2f seconds.\n' , mesh.numNodes , h5FileName , toc() );
+  fprintf( 'Read %d nodes from %s in %.2f seconds.\n' , mesh.numNodes , h5FileName , cputime - tstart );
 
   % Get the mesh elements - AMELET-HDF packs the elements into a 1D array.
-  tic();
+  tstart = cputime;
   tmpFileName = tempname;
   cmd = sprintf( 'h5totxt -d "mesh/%s/%s/elementNodes" -s "," -o "%s" "%s"' , meshGroupName , meshName , tmpFileName , h5FileName );
   [ status , output ] = system( cmd );
@@ -178,10 +178,10 @@ function [ mesh ] = meshReadAmelet( h5FileName , meshGroupName , meshName )
   % Now collapse element node array into sparse array.
   mesh.elements = sparse( elements );
   
-  fprintf( 'Read %d elements from %s in %.2f seconds.\n' , mesh.numElements , h5FileName , toc() );
+  fprintf( 'Read %d elements from %s in %.2f seconds.\n' , mesh.numElements , h5FileName , cputime - tstart );
 
   % Get groups.
-  tic();
+  tstart = cputime;
   cmd = sprintf( 'h5ls "%s/mesh/%s/%s/group"' , h5FileName , meshGroupName , meshName );
   [ status , output ] = system( cmd );
   if( status ~= 0 )
@@ -274,7 +274,7 @@ function [ mesh ] = meshReadAmelet( h5FileName , meshGroupName , meshName )
 
     end % for
  
-    fprintf( 'Read %d groups from %s in %.2f seconds.\n' , mesh.numGroups , h5FileName , toc() );
+    fprintf( 'Read %d groups from %s in %.2f seconds.\n' , mesh.numGroups , h5FileName , cputime - tstart );
 
   else
 
@@ -283,7 +283,7 @@ function [ mesh ] = meshReadAmelet( h5FileName , meshGroupName , meshName )
   end % if
 
   % Get groups of groups.
-  tic();
+  tstart = cputime;
   cmd = sprintf( 'h5ls "%s/mesh/%s/%s/groupGroup"' , h5FileName , meshGroupName , meshName );
   [ status , output ] = system( cmd );
   if( status ~= 0 )
@@ -331,7 +331,7 @@ function [ mesh ] = meshReadAmelet( h5FileName , meshGroupName , meshName )
 
     end % for
   
-    fprintf( 'Read %d groups of groups from %s in %.2f seconds.\n' , mesh.numGroupGroups , h5FileName , toc() );
+    fprintf( 'Read %d groups of groups from %s in %.2f seconds.\n' , mesh.numGroupGroups , h5FileName , cputime - tstart );
   
   else
   

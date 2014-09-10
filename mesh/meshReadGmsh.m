@@ -125,7 +125,7 @@ function [ mesh ] = meshReadGmsh( mshFileName , groupFormat )
         % file-type      - integer, equal to 0 in the ASCII file format.
         % data-size      - integer, currently only data-size = sizeof(double) is supported.
 
-        tic();            
+        tstart = cputime;            
 
         line = strtrim( fgetl( fin ) );
         [ fields , count ] = sscanf( line , '%f %d %d ' , [ 3 ] );
@@ -152,7 +152,7 @@ function [ mesh ] = meshReadGmsh( mshFileName , groupFormat )
           line = strtrim( fgetl( fin ) );
         end % while
             
-        fprintf( 'Mesh version %f in %.2f seconds.\n' , meshVersion , toc() );
+        fprintf( 'Mesh version %f in %.2f seconds.\n' , meshVersion , cputime - tstart );
         drawnow
 
       case '$Nodes'
@@ -167,9 +167,9 @@ function [ mesh ] = meshReadGmsh( mshFileName , groupFormat )
         % number-of-nodes         - integer, number of nodes in the mesh.
         % node-number             - integer>=0, index of the n-th node in the mesh.
         % x-coord y-coord z-coord - float, X, Y and Z coordinates of the n-th node.
-            
-        tic();
 
+        tstart = cputime;   
+        
         [ mesh.numNodes , count ] = fscanf( fin , '%d ' , [ 1 ] );
         if( count ~= 1 )
           error( 'Failed to read number of nodes.' );
@@ -189,7 +189,7 @@ function [ mesh ] = meshReadGmsh( mshFileName , groupFormat )
           clear fields;
         end % if
             
-        fprintf( 'Read %d nodes in %.2f seconds.\n' , mesh.numNodes , toc() );
+        fprintf( 'Read %d nodes in %.2f seconds.\n' , mesh.numNodes , cputime - tstart );
         drawnow
 
         % [FIXME] Guess mesh dimension. Need to determine is all
@@ -228,7 +228,7 @@ function [ mesh ] = meshReadGmsh( mshFileName , groupFormat )
         %                    tag4 ... mesh partition numbers
         % node-number-list - integers, list of the node numbers of the element.
             
-        tic();
+        tstart = cputime;   
 
         [ mesh.numElements , count ] = fscanf( fin , '%d ' , [ 1 ] );
         if( count ~= 1 )
@@ -295,7 +295,7 @@ function [ mesh ] = meshReadGmsh( mshFileName , groupFormat )
 
         clear tmpNodeMap , newNodes;
 
-        fprintf( 'Read %d elements in %.2f seconds.\n' , mesh.numElements , toc() );
+        fprintf( 'Read %d elements in %.2f seconds.\n' , mesh.numElements , cputime - tstart );
         drawnow
 
         while ( ~feof( fin ) && ~strcmp( line , endTag ) )
@@ -317,7 +317,7 @@ function [ mesh ] = meshReadGmsh( mshFileName , groupFormat )
         %                      tag1 on all elements in grouping.
         % "physical-name"    - quotedstring, nanme of grouping
             
-        tic();
+        tstart = cputime;   
 
         [ numPhysicalNames , count ] = fscanf( fin , '%d ' , [ 1 ] );
         if( count ~= 1 )
@@ -349,7 +349,7 @@ function [ mesh ] = meshReadGmsh( mshFileName , groupFormat )
                 
         end % for
             
-        fprintf( 'Read %d physical names in %.2f seconds.\n' , numPhysicalNames , toc() );
+        fprintf( 'Read %d physical names in %.2f seconds.\n' , numPhysicalNames , cputime -tstart );
         drawnow
 
         while ( ~feof( fin ) && ~strcmp( line , endTag ) )
@@ -374,7 +374,7 @@ function [ mesh ] = meshReadGmsh( mshFileName , groupFormat )
 
   % Note node, line, face and volume element types have different namespaces in gmsh!
 
-  tic();
+  tstart = cputime;   
 
   lastEntityElementIdx = 0;
   lastPhysicalElementIdx = 0;
@@ -453,12 +453,12 @@ function [ mesh ] = meshReadGmsh( mshFileName , groupFormat )
 
   elementPhysicalGroupIdx = [ nodeElementPhysicalGroupIdx, lineElementPhysicalGroupIdx, faceElementPhysicalGroupIdx, volumeElementPhysicalGroupIdx ];
 
-  fprintf( 'Identified all groups and types in %.2f seconds.\n' , toc() );
+  fprintf( 'Identified all groups and types in %.2f seconds.\n' , cputime - tstart );
   drawnow
 
   if( groupFormat == 2 || groupFormat == 3 )
 
-    tic();
+    tstart = cputime;   
 
     % Create entity groups.
     numEntityGroups = numNodeElementEntityGroups + numLineElementEntityGroups + numFaceElementEntityGroups + numVolumeElementEntityGroups;
@@ -534,14 +534,14 @@ function [ mesh ] = meshReadGmsh( mshFileName , groupFormat )
         counter = counter + 1;
     end % for
      
-    fprintf( 'Created entity groups in %.2f seconds.\n' , toc() );
+    fprintf( 'Created entity groups in %.2f seconds.\n' , cputime - tstart );
     drawnow
 
   end % if
 
   if( groupFormat == 1 || groupFormat == 3 )
 
-    tic();
+    tstart = cputime;   
 
     % Create physical groups.
     numPhysicalGroups = numNodeElementPhysicalGroups + numLineElementPhysicalGroups + numFaceElementPhysicalGroups + numVolumeElementPhysicalGroups;
@@ -575,12 +575,12 @@ function [ mesh ] = meshReadGmsh( mshFileName , groupFormat )
         physicalGroupNames{nameIdx} = thisName;
    end % format
 
-   fprintf( 'Created physical groups in %.2f seconds.\n' , toc() );
+   fprintf( 'Created physical groups in %.2f seconds.\n' , cputime - tstart );
    drawnow
 
   end % if
 
-  tic();
+  tstart = cputime;   
 
   if( groupFormat == 1 )
 
@@ -611,7 +611,7 @@ function [ mesh ] = meshReadGmsh( mshFileName , groupFormat )
 
   end % if
 
-  fprintf( 'Mapped output groups in %.2f seconds.\n' , toc() );
+  fprintf( 'Mapped output groups in %.2f seconds.\n' , cputime - tstart );
   drawnow
 
 end % function
