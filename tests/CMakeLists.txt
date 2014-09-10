@@ -22,7 +22,7 @@ function( meshTest TESTNAME TESTTAG H5_GROUP_NAME H5_MESH_NAME )
       add_test( NAME ${TESTTAG}_geo2msh COMMAND ${GMSH_EXECUTABLE} -2 -o "${TESTNAME}.msh" "${MESH_SOURCE_DIR}/tests/${TESTNAME}/${TESTNAME}.geo" )
     endif( WITH_GMSH )
   elseif( EXISTS "${MESH_SOURCE_DIR}/tests/${TESTNAME}/${TESTNAME}.h5" )    
-    add_test( NAME ${TESTTAG}_h52msh COMMAND ${MEXEC} "meshAmelet2Gmsh( '${TESTNAME}.msh' , '${MESH_SOURCE_DIR}/tests/${TESTNAME}/${TESTNAME}.h5' , '${H5_GROUP_NAME}' , '${H5_MESH_NAME }' )" )
+    add_test( NAME ${TESTTAG}_h52msh COMMAND ${MEXEC} "meshAmelet2Gmsh( '${TESTNAME}.msh' , '${MESH_SOURCE_DIR}/tests/${TESTNAME}/${TESTNAME}.h5' , '${H5_GROUP_NAME}' , '${H5_MESH_NAME }' ) ; exit " )
   elseif( EXISTS "${MESH_SOURCE_DIR}/tests/${TESTNAME}/${TESTNAME}.stl" )   
     add_test( NAME ${TESTTAG}_stl2msh COMMAND ${GMSH_EXECUTABLE} -2 -o "${TESTNAME}.msh" "${MESH_SOURCE_DIR}/tests/${TESTNAME}/${TESTNAME}.stl" )  
   elseif( EXISTS "${MESH_SOURCE_DIR}/tests/${TESTNAME}/${TESTNAME}.msh" )
@@ -33,15 +33,15 @@ function( meshTest TESTNAME TESTTAG H5_GROUP_NAME H5_MESH_NAME )
 
   # Unstructured mesh exporters.
   if( WITH_CONCEPT )
-    add_test( NAME ${TESTTAG}_msh2surf COMMAND ${MEXEC} "meshGmsh2Surf( '${TESTNAME}.surf'    , '${TESTNAME}.msh' )"  )
-    add_test( NAME ${TESTTAG}_msh2wire COMMAND ${MEXEC} "meshGmsh2Wire( '${TESTNAME}.wire'    , '${TESTNAME}.msh' )"  )
-    add_test( NAME ${TESTTAG}_surf2msh COMMAND ${MEXEC} "meshSurf2Gmsh( '${TESTNAME}_out.msh' , '${TESTNAME}.surf' )" )
+    add_test( NAME ${TESTTAG}_msh2surf COMMAND ${MEXEC} "meshGmsh2Surf( '${TESTNAME}.surf'    , '${TESTNAME}.msh' ) ; exit"  )
+    add_test( NAME ${TESTTAG}_msh2wire COMMAND ${MEXEC} "meshGmsh2Wire( '${TESTNAME}.wire'    , '${TESTNAME}.msh' ) ; exit"  )
+    add_test( NAME ${TESTTAG}_surf2msh COMMAND ${MEXEC} "meshSurf2Gmsh( '${TESTNAME}_out.msh' , '${TESTNAME}.surf' ) ; exit" )
   endif( WITH_CONCEPT )
 
   # Mesh mapping.
   if( WITH_MESHER )
   
-    add_test( NAME ${TESTTAG}_mesher COMMAND ${MEXEC} "meshTestDriver( '${TESTNAME}' , '${WITH_GVULTURE}' )" )
+    add_test( NAME ${TESTTAG}_mesher COMMAND ${MEXEC} "meshTestDriver( '${TESTNAME}' , '${WITH_GVULTURE}' ) ; exit " )
 
     if( WITH_GMSH )
       add_test( NAME ${TESTTAG}_surfchk COMMAND ${GMSH_EXECUTABLE} -check structuredmesh.msh )

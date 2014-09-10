@@ -1,121 +1,117 @@
 
-Requirements
-============
+[TOC]
 
-1. Interpreter (mandatory)
+# AEG Mesher: Installation and testing
 
-   EITHER: 
+## Requirements
 
-     A recent version of GNU Octave.
-     http://www.gnu.org/software/octave
+The code is written in a portable subset of GNU [Octave][] and [MATLAB][], one of which is required
+to use the software. Additional requirements are:
 
-     The optim package from Octaveforge
-     http://octave.sourceforge.net.
-     
-     This will need to be installed separately.
-     If you have an Internet connection this can be done
-     easily from the Octave command line using
-     
-     $ pkg install -forge optim 
-     
-   OR 
+1. (Mandatory for use with GNU [Octave][]) The [optim](http://octave.sourceforge.net/optim/index.html) package 
+   from [OctaveForge][]. This can be installed from within Octave using the command `pkg add -forge optim`.
 
-     MathWorks MATLAB
-     http://www.mathworks.co.uk/products/matlab
+2. (Recommended) The [Gmsh][] unstructured mesh generator is highly recommended for creating and viewing meshes. 
+   It also enables importing meshes in many other formats such as [STL](http://en.wikipedia.org/wiki/STL_%28file_format%29).
 
-2. Gmsh (recommended)
+3. (Optional) The [nlopt][] package provides enhanced optimisation capability.
 
-   http://geuz.org/gmsh
+4. (Optional) For [AMELET-HDF][] format support the command line tools from the [HDF5][] package are required.
 
-   While the code all operates without Gmsh installed it is not very 
-   easy to use without it for constructing and viewing meshes.
+5. (Optional) To run the test-suite automatically the [CMake][] software build tool is needed.
 
-3. The nlopt package (optional) 
+6. (Optional) To help with development or as an alternative way to download the source a client for the [Mercurial][] Version 
+   Control System is required.
 
-   http://ab-initio.mit.edu/wiki/index.php/NLopt
+The code has been primarily developed using GNU [Octave][] on Linux platforms, but should run under both GNU [Octave][] 
+and [MATLAB][] on Linux and Windows systems.
 
-4. CMake (optional)
+## Installation on Linux
 
-   http://www.cmake.org
+### Set up init file for GNU/Octave
 
-   CMake is used to configure, install and test the package, however, the 
-   installation can easily be done manually. See below.
+If you are using GNU Octave and you want to run the test-suite add the lines
 
-5. HDF5 (optional)
+    if( exist( './startup.m' , 'file' ) )
+      startup
+    end %if
 
-   http://www.hdfgroup.org/HDF5/
+to the initialisation file ~/.octaverc. This makes Octave read a startup.m
+file in the current working directory when is is started. This is *only* required
+by the test-suite for setting paths to m-files. It is *not required* for using
+the software outside of the test-suite.
 
-   The command line tools from the HDF5 package are required 
-   for AMELET-HDF support. On Linux these are often provided 
-   in a package called hdf5-tools.
+### Get the source code
 
-6. Mercurial (optional)
+Either use mercurial to clone the source code repository on Bitbucket,
+for example using Mercurial directly from a Linux shell,
 
-   http://mercurial.selenic.com
+    $ hg clone ssh://hg@bitbucket.org/uoyaeg/aegmesher aegmesher-working
 
-   The upstream source is mantained in a Mercurial repository.
+or download a zip file of the source code from
+https://bitbucket.org/uoyaeg/aegmesher/downloads
+and unzip it into a directory call aegmesher-working
 
+    $ unzip aeg-aegmesher-x12ey12ey.zip
+    $ mv aeg-aegmesher-x12ey12ey aegmesher-working
 
-Quick Start On Linux
-====================
+### Run the test-suite
 
-0. If using GNU Octave add the lines
-
-   if( exist( './startup.m' , 'file' ) )
-     startup
-   end %if
-
-   to the initialisation file ~/.octaverc. This makes Octave read a startup.m
-   file in the current working directory when is is started. This is required
-   by the test-suite for setting paths to m-files. It isn't required for using
-   the software outside of the test-suite.
-
-1. EITHER: Use mercurial to clone the source code repository on Bitbucket:
-
-   $ hg clone ssh://hg@bitbucket.org/uoyaeg/aegmesher aegmesher-working
-
-   OR 
-
-   Download a zip file of the source code from
-
-   https://bitbucket.org/uoyaeg/aegmesher/downloads
-
-   and unzip it into a directory call aegmesher-working
-
-   $ unzip aeg-aegmesher-x12ey12ey.zip
-   $ mv aeg-aegmesher-x12ey12ey aegmesher-working
-
-2. Run tests:
+The testsuite can be run be issuing the following commands:
 
    $ mkdir aegmesher-build_linux_$(arch)
    $ cd aegmesher-build_linux_$(arch)
-   $ cmake -D CMAKE_INSTALL_PREFIX=$HOME -D WITH_MESHER=ON -D WITH_GMSH=ON -D WITH_AMELET=ON -D WITH_CONCEPT=ON -D WITH_GVULTURE=ON ../aegmesher-working
+   $ cmake -D CMAKE_INSTALL_PREFIX=$HOME -D WITH_MESHER=ON -D WITH_GMSH=ON -D WITH_AMELET=ON ../aegmesher-working
    $ make
    $ make test
+ 
+This will try to use GNU Octave as the m-file Interpreter. If using MATLAB add 
+the arguments `-D WITH_MATLAB=ON` to the cmake command. 
 
-   The test output is logged to the file Testing/Temporary/LastTest.log.
-   
-   Specific tests can be run using:
+The test output is logged to the file Testing/Temporary/LastTest.log.
+Specific tests can be run using:
 
-   $ ctest -R "WireBox_*" -D ExperimentalTest
+    $ ctest -R "WireBox_*" -D ExperimentalTest
 
-   To run specific tests logging full output to file (useful for debugging):
+To run specific tests logging full output to file (useful for debugging):
 
-   $ ctest -V -R "BLADE1_*" -D ExperimentalTest | tee output.txt
+    $ ctest -V -R "BLADE1_*" -D ExperimentalTest | tee output.txt
 
-   NOTE: Currently the tests will pass providing all the elements of the test to completion
-   without error. No check is made yet of the correctness or even sanity of the final output meshes.
+**NOTE** that currently the tests will pass providing all the elements of the 
+test run to completion without error. No check is made yet of the correctness 
+or even sanity of the final output meshes.
 
-3. Install the software with
+### Install the software
 
-   $ make install
+To install the software in the file-system tree defined in the CMAKE_INSTALL_PREFIX
+variable above type:
 
-   This will install the m-files in CMAKE_INSTALL_PREFIX/share/octave/packages/mesh
-   which should then be added to your MATLAB/Octave path.
+    $ make install
+
+This will install the m-files in the directory CMAKE_INSTALL_PREFIX/share/octave/packages/mesh
+which should then be added to your MATLAB/Octave path. For Octave added
+
+    addpath( '<CMAKE_INSTALL_PREFIX>/share/octave/packages/mesh' );
+
+to the .octiaverc file in your home directory.
+
+### Manual installation
+
+After getting the source code copy the sub-directory called mesh from the aegmesher-working 
+directory to somewhere convenient and add it to your Octave/MATLAB path.
+
+## Installation on Windows
+
+[FIXME]
 
 
-Manual Install
-==============
 
-At the end of step 1 above copy the sub-directory mesh from the aegmesher-working directory
-to somewhere convenient and add it to your Octave/MATLAB path.
+[Gmsh]: http://geuz.org/gmsh
+[AMELET-HDF]: https://code.google.com/p/amelet-hdf
+[Octave]: http://www.gnu.org/software/octave
+[MATLAB]: http://www.mathworks.co.uk/products/matlab
+[Mercurial]: http://mercurial.selenic.com
+[OctaveForge]: http://octave.sourceforge.net
+[HDF5]: http://www.hdfgroup.org/HDF5
+[CMake]: http://www.cmake.org
+[nlopt]: http://ab-initio.mit.edu/wiki/index.php/NLopt

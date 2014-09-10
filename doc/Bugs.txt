@@ -1,11 +1,12 @@
 
- * Mapper fails with physically small objects (e.g. test case
-   NonWovenMesh if metres are used instead of mm). Indicates
-   some scale invariance in the tolerance parameters.
+# AEG Mesher: Known bugs
 
-   This could be related to the parallel ray detection heuristic!
+* Mapper fails with physically small objects (e.g. test case
+  NonWovenMesh if metres are used instead of mm). Indicates
+  some scale invariance in the tolerance parameters.
+  This could be related to the parallel ray detection heuristic!
 
- * Tests *_surfchk often fails because gmsh -check regards repeated 
-   elements as errors. These aren't really failures but a difference 
-   in semantics in the use of the gmsh file format.
+* Tests *_surfchk often fails because gmsh -check regards repeated 
+  elements as errors. These aren't really failures but a difference 
+  in semantics in the use of the gmsh file format.
 

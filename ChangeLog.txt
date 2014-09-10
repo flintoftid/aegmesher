@@ -1,3 +1,63 @@
+2014-09-09  Ian David Flintoft  <ian.flintoft@york.ac.uk>
+
+	* Install.txt, ReadMe.txt, doc/ToDo.txt, doc/UserManual.txt,
+	mesh/meshPlaneLineIntersection.m, mesh/meshSpheres.m,
+	mesh/meshTwoLinesMinSep.m:
+	user: Ian David Flintoft <ian.flintoft@york.ac.uk> branch 'default'
+
+	added mesh/meshPlaneLineIntersection.m added mesh/meshSpheres.m
+	added mesh/meshTwoLinesMinSep.m
+
+	 New utility functions.
+
+	changed Install.txt
+
+	 Clarify use of startup file.
+
+	changed ReadMe.txt
+
+	 Synced ti wiki.
+
+	changed doc/ToDo.txt
+
+	 Updated.
+
+	changed doc/UserManual.txt
+
+	 Ship wiki version.
+	[286af153d1de] [tip]
+
+2014-09-05  Ian David Flintoft  <ian.flintoft@york.ac.uk>
+
+	* ReadMe.txt, doc/ImplementationReport.txt, doc/ToDo.txt,
+	tutorial/figure1.jpg, tutorial/figure2.jpg, tutorial/figure3.jpg,
+	tutorial/figure4.jpg, tutorial/meshTutorialExample.m,
+	tutorial/tutorial.geo, tutorial/tutorial.md:
+	user: Ian David Flintoft <ian.flintoft@york.ac.uk> branch 'default'
+
+	added tutorial/figure1.jpg added tutorial/figure2.jpg added
+	tutorial/figure3.jpg added tutorial/figure4.jpg added
+	tutorial/meshTutorialExample.m added tutorial/tutorial.geo added
+	tutorial/tutorial.md
+
+	 Added tutorial example.
+
+	changed ReadMe.txt changed doc/ImplementationReport.txt changed
+	doc/ToDo.txt
+
+	 Updated.
+	[f12dc5387d61]
+
+2014-09-02  Ian David Flintoft  <ian.flintoft@york.ac.uk>
+
+	* ChangeLog.txt, doc/ToDo.txt:
+	user: Ian David Flintoft <ian.flintoft@york.ac.uk> branch 'default'
+
+	changed ChangeLog.txt changed doc/ToDo.txt
+
+	 Reviewed and prioritised To-do list.
+	[6dc902bdf7c7]
+
 2014-09-01  Ian David Flintoft  <ian.flintoft@york.ac.uk>
 
 	* doc/ToDo.txt, mesh/meshMapGroups.m,
@@ -12,7 +72,7 @@
 	mesh/private/meshVolumeMapParallelRays.m
 
 	 Basic optimisations.
-	[f9e6670366b7] [tip]
+	[f9e6670366b7]
 
 	* ChangeLog.txt, ReadMe.txt, doc/ToDo.txt, mesh/meshMapGroups.m,
 	mesh/meshSmesh2Unmesh.m, mesh/meshWriteVulture.m,
