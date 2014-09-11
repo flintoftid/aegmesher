@@ -141,11 +141,17 @@ function [ isIntersect , t , u , v , isFrontFacing ] = meshTriRayIntersection1( 
   % If dir normalised ||dir||=1. If dir a segment could be size of object AABB.
   % ||edge1/2|| could be very small to significant proportion of object AABB.
   % cos( pi/2 - epsAngle ) ~ epsAngle
-  % abs( det) c.f. ||edge1|| ||edge2|| ||dir|| epsAngle.
-  % Norms expensive to determine but product have huge range. 
+  % abs( det ) c.f. ||edge1|| ||edge2|| ||dir|| epsAngle.
+  % Norms expensive to determine but product could have huge range. 
   % [FIXME] This simple heuristic requires detailed understanding and consistency
   % of tolerances epsRayEnds, epsParallelRay!
+  %rownorm = @(X,P) sum( abs( X ).^P , 2 ).^(1/P);
+  %rownorm2 = @(X) sqrt( sum( X.^2 , 2 ) );
+  %rownorm2 = @(X) sqrt( X(:,1) .* X(:,1) + X(:,2) .* X(:,2) + X(:,3) .* X(:,3) );
+  %epsParallelRay = 1e-4;
+  %parallel = ( abs( det ) < rownorm2( edge1 ) .* rownorm2( edge2 ) .* rownorm2( dir ) .* epsParallelRay );
   parallel = ( abs( det ) < epsParallelRay );
+
   % If all parallel then no intersections.
   if( all( parallel ) )
     return; 

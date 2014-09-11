@@ -96,4 +96,7 @@ function [ isParallel , d , t1 , t2 , p1 , p2 ] = meshTwoLinesMinSep( line1end1 
   % Minimum separation distance.
   d = norm( p1 - p2 );
 
+  t1 = t1 / norm( dir1 );
+  t2 = t2 / norm( dir2 );
+  
 end % function

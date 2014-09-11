@@ -1,137 +1,157 @@
 
+[TOC]
+
 # AEG Mesher: Things to do
 
-[TOC]
 
 ## Priority Items
 
-* Make sure all the tests work with both Octave and MATLAB on both Linux and Windows.
 
-* Integrate Michael's non-uniform mesh generation algorithm.
+### Make sure all the tests work with both Octave and MATLAB on both Linux and Windows.
 
-* Add more of Michael's tests to the test-suite.
+### Integrate Michael's non-uniform mesh generation algorithm.
 
-* Complete first draft of a full user manual.
+### Add more of Michael's tests to the test-suite.
 
-* Review all tolerances - are they absolute or relative - can they
-  be set to robust values based on the element sizes in the input mesh
-  and cell sizes in the target mesh?
+### Complete first draft of a full user manual.
+
+### Review all tolerances
+
+Dtermine if they ere they absolute or relative, units.
+Can they be set to robust values based on the element sizes in the input mesh
+and cell sizes in the target mesh?
   
-  + The parallel ray/element detection algorithm in meshTriRayIntersection1/2/3 
-    is not robust. It depends on the mesh and elements mesh sizes - see the comment
-    in the function file. In particular it will fail if the mesh elements are small
-    - the test is not scale invariant. A full calculation in terms of a tolerance on
-    the angle may be too expensive, but a better heuristic could be derived by 
-    analysing the mesh to find the smallest elements sizes and ray lengths.
-    E.g find minMeshSize and use to determine epsParallelRays, epsRayEnds?
-  
- 
+The parallel ray/element detection algorithm in meshTriRayIntersection1/2/3 
+is not robust. It depends on the mesh and elements mesh sizes - see the comment
+in the function file. In particular it will fail if the mesh elements are small
+the test is not scale invariant. A full calculation in terms of a tolerance on
+the angle may be too expensive, but a better heuristic could be derived by 
+analysing the mesh to find the smallest elements sizes and ray lengths.
+E.g find minMeshSize and use to determine epsParallelRays, epsRayEnds?
+
+
 ## General
 
-* groupGroup stuff should always be optionally considered in all mesh operations.
-  If it is not present ignore it. If present process consistently.
-  Check all functions handle this correctly.
 
-* Identify functions which may generate duplicate elements. These can be a
-  problem depending on the usage of the output. Maybe should issue warning.
+### Fully support groupGroup
+
+groupGroup stuff should always be optionally considered in all mesh operations.
+If it is not present ignore it. If present process consistently.
+Check all functions handle this correctly.
+
+### Warn about duplicate elements
+
+Identify functions which may generate duplicate elements. These can be a
+problem depending on the usage of the output. Maybe should issue warning.
+
 
 ## Mesh Line Generation
 
-* Add function to load user defined mesh lines:
+
+### Add function to load user defined mesh lines:
 
     [ lines ] = meshReadMeshLine( xFileName , yFileName , zFileName )
 
-* Add user defined constraint points to mesh line creation function.
+### Add user defined constraint points to mesh line creation function.
 
-  How to deal with weights and Dmin/Dmax or dmin/dmax to left/right?
+How to deal with weights and Dmin/Dmax or dmin/dmax to left/right?
 
     X = row vector etc
     Xuser = [ X , Xweight , Dmin , Dmax , dmin , dmax ];
 
-* Constraint point determintion from unstructured mesh node statistics:
+### Constraint point determintion from unstructured mesh node statistics
  
-  Only valid if unstructured mesh node density is representative of spatial variation
-  of surfaces.
+Only valid if unstructured mesh node density is representative of spatial variation
+of surfaces.
 
-  For each group determine histogram of nodes coordinates in each directions
+For each group determine histogram of nodes coordinates in each directions
 
     [ nn , xx ] = hist( nodex , bincentres , 1 );
   
-  nodex -> strong peaks in nn(i) indicate probable presence of lots of x-normal elements
-           at xx(i) and that location and should therefore be a constraint point.
+nodex -> strong peaks in nn(i) indicate probable presence of lots of x-normal elements
+at xx(i) and that location and should therefore be a constraint point.
 
-  Could also be used to alter mesh density/size Dmax/ dx_max?
+Could also be used to alter mesh density/size Dmax/ dx_max?
 
-  How to determine resolution of the histogram?
+How to determine resolution of the histogram?
 
-    Don't want to generate lots constraint points
-    bincentres determine from Dmax/dmin and object AABB
-    Use fraction 0 to 1 to determine peak. E.g. nn(i) > frac => xx(i) constraint pointing
+Don't want to generate lots constraint points
+bincentres determine from Dmax/dmin and object AABB
+Use fraction 0 to 1 to determine peak. E.g. nn(i) > frac => xx(i) constraint pointing
+
 
 ## Mesh Mapping
 
-* Consider propagating down new structured mesh format into
-  
-  meshLineMapGroup.m
-  meshSurfaceMapGroup.m
-  meshVolumeMapGroup.m
-  
-  The main issue is the "voting algorithm" for casting rays in different directions for 
-  volume groups. This can only be done efficiently with the isInside(i,j,k,dir) format.
 
-  * How to deal with sources and observers?
+### Consider propagating new structured mesh format into other functions
+  
+    meshLineMapGroup.m
+    meshSurfaceMapGroup.m
+    meshVolumeMapGroup.m
+  
+The main issue is the "voting algorithm" for casting rays in different directions for 
+volume groups. This can only be done efficiently with the isInside(i,j,k,dir) format.
 
-    New per group options: physicalType = 'MEDIUM' , 'SOURCE' , 'OBSERVER'
+### Review how to deal with sources and observers
+
+New per group options: physicalType = 'MEDIUM' , 'SOURCE' , 'OBSERVER'
                    
-    How are they defined in the input mesh?
+How are they defined in the input mesh?
     
-      Observers: Normal group of elements - any dimensionality.
+* Observers: Normal group of elements - any dimensionality.
 
-      Sources: Normal group of elements - any dimensionality.
+* Sources: Normal group of elements - any dimensionality.
       
-    How should they be mapped?
+How should they be mapped?
     
-      Observers: physicalType = 'OBSERVER'
-                 Map as all nodes in group using float indices.
+* Observers: physicalType = 'OBSERVER'
+  Map as all nodes in group using float indices.
 
-      Sources: physicalType = 'SOURCE'
-               Map according to dimensionality as normal.
+* Sources: physicalType = 'SOURCE'
+  Map according to dimensionality as normal.
 
-    This doesn't really change anything in the mapper!
+This doesn't really change anything in the mapper!
     
-    How are they exported in Vulture?
+How are they exported in Vulture?
     
-        Observers: OT <groupName> <format> <domain> <quantity1> ... <quantityN>
-                   OP <ilo> <ihi> <jlo> <jhi> <klo> <khi> <groupName> <param1> ... <paramN> 
+Observers: 
+
+    OT <groupName> <format> <domain> <quantity1> ... <quantityN>
+    OP <ilo> <ihi> <jlo> <jhi> <klo> <khi> <groupName> <param1> ... <paramN> 
     
-        Sources: WF .... one default waveform determine from frequency range. 
-                 EX <ilo> <ihi> <jlo> <jhi> <klo> <khi> <groupName> <param1> ... <paramN> 
+Sources: 
 
-  + Sources: nodes, lines, planes, surfaces, volumes.
+    WF .... one default waveform determine from frequency range. 
+    EX <ilo> <ihi> <jlo> <jhi> <klo> <khi> <groupName> <param1> ... <paramN> 
 
-  + Observers: nodes, lines planes, surfaces. volumes.
+Sources: nodes, lines, planes, surfaces, volumes.
+Observers: nodes, lines planes, surfaces. volumes.
 
-  In Vulture EX, PW, OP can only be defined for cuboid (possibly degenerate)
-  shapes. In more complex cases may want to e.g define observation of current
-  on curve surface. Related to issue of how to get outputs out and map back 
-  onto input mesh. Also should observers be nodal or use natural elements
-  for output type? 
+In Vulture EX, PW, OP can only be defined for cuboid (possibly degenerate)
+shapes. In more complex cases may want to e.g define observation of current
+on curve surface. Related to issue of how to get outputs out and map back 
+onto input mesh. Also should observers be nodal or use natural elements
+for output type? 
 
-  + Define new meshing type for SOURCE and OBSERVER which just add the overall
-    bounding box to the structured mesh? 
+Define new meshing type for SOURCE and OBSERVER which just add the overall
+bounding box to the structured mesh? 
 
-* Surface mapping is not robust on stair-cased surfaces. E.g. cube at 45 degrees.
-  Improve algorithm so get similar results from CLOSED_SURFACE and SURFACE
-  mapping. This is hard.
+### Surface mapping is not robust on stair-cased surfaces. 
 
-* Check solid and surface mappers still deal with truncated objects.
+E.g. cube at 45 degrees.
+Improve algorithm so get similar results from CLOSED_SURFACE and SURFACE
+mapping. This is hard.
 
-* Make line mapper deal with truncated objects.
+### Check solid and surface mappers still deal with truncated objects.
+
+### Make line mapper deal with truncated objects.
   
-* Make node mapper deal with truncated objects.
+### Make node mapper deal with truncated objects.
 
-* Michael has code to transform non triangular elements into triangles using the
-  MATAB Delauny function. Maybe offer this at higher level using function:
+### Support other surface elements
+
+Michael has code to transform non triangular elements into triangles using the
+MATAB Delauny function. Maybe offer this at higher level using function:
 
     mesh2 = meshTriangulate( mesh1 )
 
@@ -152,171 +172,197 @@
       vertices = mesh.nodes';
     end
     
-  Replaces all non-triangular surface elements with multiple triangles.
+eplaces all non-triangular surface elements with multiple triangles.
 
-* Add more sophisticated ideas from Michael's surface mapper into basic implementation.
+### Add more sophisticated ideas from Michael's surface mapper into basic implementation.
 
-* Allow precedence = 0 meaning "do not mesh this object".
+### Allow precedence = 0 meaning "do not mesh this object".
 
-* Delete unmapped groups from groupGroups.
+### Delete unmapped groups from groupGroups.
+   
    
 ## Unstructured mesh import and export
 
-* meshImportMatlab - import a MATLAB format surface triangluation.
 
-* meshExportMatlab - export a MATLAB format surface triangluation.
+### Add function to import a MATLAB format surface triangluation
 
-* meshWriteSTL( stlFileName , mesh , format )
+    meshImportMatlab()
 
-  + format can be 'ASCII' or 'BINARY'.
-  + Need to create normal vectors - assume right-hand rule for nodes.
-  + Only needs to support triangles - start from meshWriteSurf which 
-    is very close to the required algorithm. 
+### Add function to export a MATLAB format surface triangluation
 
-* [ mesh ] = meshReadSTL( stlFileName )
+    meshExportMatlab()
 
-  + Detect format.
+### Add function to export an STL format surface triangluation
 
-* meshWriteConcept( conDirName , mesh )
+    meshWriteSTL( stlFileName , mesh , format )
 
-  + Current version is not very general.
+* format can be 'ASCII' or 'BINARY'.
+* Need to create normal vectors - assume right-hand rule for nodes.
+* Only needs to support triangles - start from meshWriteSurf which 
+  is very close to the required algorithm. 
 
-  + Dealing with closed dielectric bodies is going to be hard and require 
-    more meta information to be stored. E.g blade model - intersection
-    surfaces need to be output separately and everything stitched together
-    with correct topology and without duplicate elements.
+### Add function to imxport an STL format surface triangluation
+
+    [ mesh ] = meshReadSTL( stlFileName )
+
+* Detect format.
+
+### Improve CONCEPT exporter
+
+    meshWriteConcept( conDirName , mesh )
+
+* Current version is not very general.
+
+* Dealing with closed dielectric bodies is going to be hard and require 
+  more meta information to be stored. E.g blade model - intersection
+  surfaces need to be output separately and everything stitched together
+  with correct topology and without duplicate elements.
+
 
 ## Structured mesh exporters
 
-* meshWriteVulture( vultureFileName , mesh )
 
-  - options.vulture.meshScaleFactor
-  
-    Scale structure on output.
-  
-  - Use maxFreq/minFreq to determine waveform parameters.
+### Vulture exporter
 
-  - Precedence?
-  
-  - Consider best way to write out objects and combine with rest
-    of mesh. Do we want to always write a full mesh or separate files
-    (mb.mesh, tb.mesh,..) which can be combined by another function
-    with material information to provide a complete mesh?
+    meshWriteVulture( vultureFileName , mesh )
 
-  - Could generalise material database to return simple medium parameters 
-    and Debye parameters that could be included in mesh. 
+* options.vulture.meshScaleFactor - scale structure on output.
+* Use maxFreq/minFreq to determine waveform parameters.
+* Use group precedence during export.
+* Consider best way to write out objects and combine with rest
+  of mesh. Do we want to always write a full mesh or separate files
+  (mb.mesh, tb.mesh,..) which can be combined by another function
+  with material information to provide a complete mesh?
+* Could generalise material database to return simple medium parameters 
+  and Debye parameters that could be included in mesh. 
 
     [ modelType , modelParams ] = matModelLookUp( f , matName );
 
-       f used to check realm of validity.
-       modelType - SIMPLE, DEBYE,....
+  where f is used to check realm of validity. modelType - SIMPLE, DEBYE,....
 
-* meshWriteHawk( hawkFileName , mesh )
+### Write AEG Hawk TLM code exporter
 
-  Export to AEG Hawk TLM solver format.
+    meshWriteHawk( hawkFileName , mesh )
 
-* Would be nice to export to AMELET-HDF but Octave has no generic
-  HDF5 writing support - need tight control of dataset types and names
-  and attributes. Could possibly save mesh in mat file and read into
-  Python then use pytables. Actually want to ADD structured mesh to
-  existing AMELET file?
+### Write AMELET-HDf exporter
+
+Would be nice to export to AMELET-HDF but Octave has no generic
+HDF5 writing support - need tight control of dataset types and names
+and attributes. Could possibly save mesh in mat file and read into
+Python then use pytables. Actually want to ADD structured mesh to
+existing AMELET file?
+
 
 ## Data on mesh
 
-* Example nodal data in Gmsh format:
- 
-  $NodeData
-  1                        one string tag:
-  "Observer group name"      the name of the view ("A scalar view")
-  1                        two real tags:
-  0.0                        the time/frequency value
-  3                        three integer tags:
-  0                          the time step/frequency number (0; time steps always start at 0)
-  3                          3-component (scalar) field
-  6                          number of associated nodal values
-  1 0.0 0.0 0.0            value associated with node #1 (0.0)
-  2 0.1 0.0 0.0            value associated with node #2 (0.1)
-  3 0.2 0.0 0.0            etc.
-  4 0.0 1.0 1.0
-  5 0.2 3.0 4.0
-  6 0.4 2.3 4.5
-  $EndNodeData 
 
-  Function meshReadVulture will read data from Vulture output files and original unstructured mesh
-  and generate Gmsh data - can put in separate .msh files and merge.
+### Develop strategy for post-processing
+
+Example nodal data in Gmsh format:
+ 
+    $NodeData
+    1                        one string tag:
+    "Observer group name"      the name of the view ("A scalar view")
+    1                        two real tags:
+    0.0                        the time/frequency value
+    3                        three integer tags:
+    0                          the time step/frequency number (0; time steps always start at 0)
+    3                          3-component (scalar) field
+    6                          number of associated nodal values
+    1 0.0 0.0 0.0            value associated with node #1 (0.0)
+    2 0.1 0.0 0.0            value associated with node #2 (0.1)
+    3 0.2 0.0 0.0            etc.
+    4 0.0 1.0 1.0
+    5 0.2 3.0 4.0
+    6 0.4 2.3 4.5
+    $EndNodeData 
+
+Function meshReadVulture will read data from Vulture output files and original unstructured mesh
+and generate Gmsh data - can put in separate .msh files and merge.
+
 
 ## Performance
 
-* Run profiler on the mapper to find any obvious performance issues:
 
-  - Growing arrays.
-  - i,j,k loops should be in order k, j, i.
-  - Unchanging calculations inside loops.
-  - Easy vectorisations.
-  - What is the current dominant contribution to the mapping time?
+### Run profiler on the mapper to find any obvious performance issues:
 
-* Check BVH is tuned correctly. What happens if we double Nc?
-  Make a function to tune BVH on real meshes.
+* Growing arrays.
+* i,j,k loops should be in order k, j, i.
+* Unchanging calculations inside loops.
+* Easy vectorisations.
+* What is the current dominant contribution to the mapping time?
+
+### Check BVH is tuned correctly. What happens if we double Nc?
   
-* Speed up ray AABB intersection calculation.
-
-* Is there a better way to deal with degenerate case when AABB a surface?
+### Make a function to tune BVH on real meshes.
   
-* Improve efficiency of closed surface mapping in meshVolumeGroup2SurfaceGroup.m.
+### Speed up ray AABB intersection calculation.
 
-* Check all sparse arrays operations are handle efficiently:
+### Is there a better way to deal with degenerate case when AABB a surface?
+  
+### Improve efficiency of closed surface mapping in meshVolumeGroup2SurfaceGroup.m.
 
-  [ i1, j1 , s1 ] = find( mesh1.groups );
-  [ i2, j2 , s2 ] = find( mesh2.groups );
-  mesh.groups = sparse( [ i1 ; i2 ] , [ j1 ; j2 + mesh1.numGroups ] , [ s1 ; s2 + mesh1.numElements ] , ...
-                         max( [ i1 ; i2 ] ) , mesh.numGroups );
+### Check all sparse arrays operations are handle efficiently
+
+Example:
+
+    [ i1, j1 , s1 ] = find( mesh1.groups );
+    [ i2, j2 , s2 ] = find( mesh2.groups );
+    mesh.groups = sparse( [ i1 ; i2 ] , [ j1 ; j2 + mesh1.numGroups ] , [ s1 ; s2 + mesh1.numElements ] , ...
+                           max( [ i1 ; i2 ] ) , mesh.numGroups );
+
 
 ## Tests
 
-* Solids:
 
-  + Spheres of different sizes on fixed size mesh.
-  + Sphere varying resolution of unstructured mesh:
-    - Very low resolution.
-    - Very high resolution.
-  + Hollow sphere with thickness of >> mesh size.
-  + Hollow sphere with thickness of 1-2 times mesh size.
-  + Cylinder of different size at different angles to mesh.
-  + Hollow cylinder with thickness of >> mesh size.
-  + Hollow cylinder with thickness of 1-2 times mesh size.
-  + Three concentric cylinders PEC-dielectric-PEC (coaxial TL):
-     - Mesh outer shells "properly" as shells.
-     - Use three solid cylinders with appropriate priorities.
-  + SAM head - can we close surface:
-    - freeCAD?
-    - various mesh repair tools?
+### Solids
 
-* Closed surfaces:
+* Spheres of different sizes on fixed size mesh.
+* Sphere varying resolution of unstructured mesh:
+  - Very low resolution.
+  - Very high resolution.
+* Hollow sphere with thickness of >> mesh size.
+* Hollow sphere with thickness of 1-2 times mesh size.
+* Cylinder of different size at different angles to mesh.
+* Hollow cylinder with thickness of >> mesh size.
+* Hollow cylinder with thickness of 1-2 times mesh size.
+ Three concentric cylinders PEC-dielectric-PEC (coaxial TL):
+   - Mesh outer shells "properly" as shells.
+   - Use three solid cylinders with appropriate priorities.
+* SAM head - can we close surface:
+  - freeCAD?
+  - various mesh repair tools?
 
-  + Spheres of different sizes on fixed size mesh.
-  + Cylinder of different size at different angles to mesh.
-  + Torus.
-  + Irregular object with features << mesh size.
+### Closed surfaces
 
-* Open surfaces:
+* Spheres of different sizes on fixed size mesh.
+* Cylinder of different size at different angles to mesh.
+* Torus.
+* Irregular object with features << mesh size.
 
-  + Planes at various angles to mesh.
-  + Corners (3 sides of cube) at various angles to mesh.
+### Open surfaces
 
-* Wires:
+* Planes at various angles to mesh.
+* Corners (3 sides of cube) at various angles to mesh.
 
-  + Straight diagonal wires.
-  + Curved wires.
-  + Loops.
-  + Wires with multiple intersections.
-  + Wire mesh.
-  
+### Wires
+
+* Straight diagonal wires.
+* Curved wires.
+* Loops.
+* Wires with multiple intersections.
+* Wire mesh.
+ 
+ 
 ## Documentation
 
-* Automatic generation of txt files from Markdown with tables/code?
 
-* Add implementation notes.
+### Automatic generation of txt files from Markdown with tables/code?
+
+### Add implementation notes.
+
 
 ## Packaging and distribution
 
-* Add CPack directives to create distribution package.
+
+### Add CPack directives to create distribution package.

@@ -63,12 +63,12 @@ Installation instructions are contained in the file [Install.txt][] in the sourc
 The best place to start after installing the software is with the detailed [tutorial][] example in the 
 tutorial directory of the software package.
 
-There is also a draft [user manual](UserManual.md) in the file doc/[UserManual.txt][].
+There is also a draft user manual in the file doc/[UserManual.txt][].
 
 ## Bugs and support
 
 The code is still under development and no doubt will contain many bugs. Known significant bugs 
-are listed in the file doc/[Bugs.txt][] in the source code. 
+are listed in the file doc/[Bugs.txt][]  in the source code. 
 
 Please report bugs using the bitbucket issue tracker at
 <https://bitbucket.org/uoyaeg/aegmesher/issues> or by email to <ian.flintoft@york.ac.uk>.
@@ -100,7 +100,7 @@ We welcome any contributions to the development of the mesher, including:
 * Speeding up the mesh mapping phase, maybe be reimplementing keys parts as low level code in
   another language.
   
-* Items in the to-do list in the file [ToDo.txt][].
+* Items in the to-do list in the file doc/[ToDo.txt][].
 
 Please contact [Dr Ian Flintoft], <ian.flintoft@york.ac.uk>, if you are interested in helping with
 these or any other aspect of development.
@@ -161,8 +161,10 @@ Many thanks to the [Gmsh][] developers for creating an excellent [Open Source][]
 [CONCEPT-II]: http://www.tet.tuhh.de/concept/?lang=en
 [Open Source]: http://opensource.org
 [Erasmus Programme]: http://en.wikipedia.org/wiki/Erasmus_Programme
-[Install.txt]: https://bitbucket.org/uoyaeg/aegmesher/raw/tip/Install.txt
-[UserManual.txt]: https://bitbucket.org/uoyaeg/aegmesher/raw/tip/doc/UserManual.txt
-[ToDo.txt]: https://bitbucket.org/uoyaeg/aegmesher/raw/tip/doc/ToDo.txt
-[Bugs.txt]: https://bitbucket.org/uoyaeg/aegmesher/raw/tip/doc/Bugs.txt
+
+[Install.txt]: Install.md
 [tutorial]: tutorial.md
+[UserManual.txt]: UserManual.md
+[Bugs.txt]: Bugs.md
+[ToDo.txt]: ToDo.md
+

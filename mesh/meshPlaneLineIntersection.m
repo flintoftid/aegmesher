@@ -33,7 +33,7 @@ function [ isIntersection , t , p ] = meshPlaneLineIntersection( planeNormal , p
     isFinite = false;
   end % if
   
-  dir = lineEnd2-lineEnd1;
+  dir = lineEnd2 - lineEnd1;
   
   w = lineEnd1 - planePoint;
   D = dot( planeNormal ,dir );
