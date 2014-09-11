@@ -1,31 +1,31 @@
 
-uoymesher - structured mesh generator and utilities.
+# AEG Mesher: An Open Source Structured Mesh Generator for FDTD Simulations
+
 Copyright (C) 2010-2014 Ian Flintoft, Michael Berens & John Dawson
 
+Developers:
 
-Authors: Ian Flintoft <ian.flintoft@york.ac.uk>
-         Michael Berenss <michael-berens1@web.de> 
-         John Dawson <john.dawson@york.ac.uk>
+* Ian Flintoft <ian.flintoft@york.ac.uk>
+* Michael Berenss <michael-berens1@web.de> 
+* John Dawson <john.dawson@york.ac.uk>
   
-
-This software was written in the Department of Electronics at the 
-University of York by Ian Flintoft and Michael Berens (a visting 
-ERAMUS student from the Leibniz Universität Hannover under the 
-supervision of Dr John Dawson).
-
 The triangle ray intersection algorithm in the file 
 
-mesh/private/meshTriRayIntersection1.m
+    mesh/private/meshTriRayIntersection1.m
 
 and its derivatives in 
 
-mesh/private/meshTriRayIntersection2.m
-mesh/private/meshTriRayIntersection3.m
+    mesh/private/meshTriRayIntersection2.m
+    mesh/private/meshTriRayIntersection3.m
 
 are modified versions of code written by Jaroslaw Tuszynski and 
 distributed under the Modified BSD Licence given in 
-the file licenses/TriangleRayIntersection-Licence.txt.
+the file Licenses/[TriangleRayIntersection-Licence.txt][].
 
 The overall package is distributed under the terms of the 
 GNU General Public License Version 3 (or later) given in the
-file Licences/gpl-3.0.txt.
+file Licences/[gpl-3.0.txt][].
+
+[gpl-3.0.txt]: http://www.gnu.org/copyleft/gpl.html
+[TriangleRayIntersection-Licence.txt]: https://bitbucket.org/uoyaeg/aegmesher/src/tip/Licences/TriangleRayIntersection-Licence.txt.
+

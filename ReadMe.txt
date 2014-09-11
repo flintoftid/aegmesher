@@ -108,6 +108,7 @@ these or any other aspect of development.
 ## Licence
 
 The code is licensed under the [GNU Public Licence, version 3](http://www.gnu.org/copyleft/gpl.html). 
+For details see the file [Licence.txt][].
 
 ## Developers
 
@@ -167,4 +168,4 @@ Many thanks to the [Gmsh][] developers for creating an excellent [Open Source][]
 [UserManual.txt]: UserManual.md
 [Bugs.txt]: Bugs.md
 [ToDo.txt]: ToDo.md
-
+[Licence.txt]: https://bitbucket.org/uoyaeg/aegmesher/src/tip/Licence.txt
