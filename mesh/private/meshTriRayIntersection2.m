@@ -211,7 +211,7 @@ function [ isIntersect , t , u , v , isFrontFacing ] = meshTriRayIntersection2( 
     v(isFeasible,:) = sum( dirs(isFeasible,:) .* qvec , 2 );
     
     % See which triangles are intersected by ray.
-    isIntersect = ( det > epsParallelRay & u >= -zero & v >= -zero & u + v <= det * ( 1 + zero ) );
+    isIntersect = ( isFrontFacing & u >= -zero & v >= -zero & u + v <= det * ( 1 + zero ) );
     
     % t(isFeasible,:)  = dot( edge2(isFeasible,:) , qvec , 2 );
     t(isFeasible,:)  = sum( edge2(isFeasible,:) .* qvec , 2 );

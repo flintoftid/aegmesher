@@ -86,7 +86,7 @@ if( WITH_TESTS )
 
 endif( WITH_TESTS )
 
-install( DIRECTORY mesh/ DESTINATION share/octave/packages/uoymesher FILES_MATCHING PATTERN "*.m" )
-install( DIRECTORY mesh/private DESTINATION share/octave/packages/uoymesher/private FILES_MATCHING PATTERN "*.m" )
-install( DIRECTORY doc/ DESTINATION share/doc/uoymesher FILES_MATCHING PATTERN "*.txt" )
+install( DIRECTORY mesh/ DESTINATION share/octave/packages/aegmesher FILES_MATCHING PATTERN "*.m" )
+#install( DIRECTORY mesh/private/ DESTINATION share/octave/packages/aegmesher/private FILES_MATCHING PATTERN "*.m" )
+install( DIRECTORY doc/ DESTINATION share/doc/aegmesher FILES_MATCHING PATTERN "*.txt" )
 

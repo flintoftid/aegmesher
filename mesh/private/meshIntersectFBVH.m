@@ -118,7 +118,9 @@ function [ t , elementIdx , isIntersectEdge , isFrontFacing ] = meshIntersectFBV
         % Test  for intersections #2.      
         %[ isIntersect , tt , u , v , isFront ] = meshTriRayIntersection2( origin , dir , vert1 , vert2 , vert3 , options );
         % Test  for intersections #3.      
-        %[ isIntersect , tt , u , v , isFront ] = meshTriRayIntersection3( origin , dir , vert1' , vert2' , vert3' , options );        
+        %[ isIntersect , tt , u , v , isFront ] = meshTriRayIntersection3( origin , dir , vert1' , vert2' , vert3' , options );       
+        % Test  for intersections #4.      
+        %[ isIntersect , tt , u , v , isFront ] = meshTriRayIntersection4( origin , dir , vert1 , vert2 , vert3 , options );        
         % Find hits.
         hitIdx = find( isIntersect );
         % Keep intersected elements.

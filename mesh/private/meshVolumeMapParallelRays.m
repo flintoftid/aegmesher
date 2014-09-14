@@ -125,7 +125,7 @@ function [ isInside  ] = meshVolumeMapParallelRays( mesh , fbvh , elementMap , x
       dir = destination - origin;
       % Cast ray. Elements parallel to elements are discarded by meshIntersectFBVH but other types
       % of singularity will still be present.
-      [ tIntersect , elementIdx , isIntersectEdge , isFrontFacing ] = meshIntersectFBVH( mesh , fbvh , elementMap , origin , dir , options );
+      [ tIntersect , elementIdx , isIntersectEdge , isFrontFacing ] = meshIntersectFBVH( mesh , fbvh , elementMap , origin , dir , options );    
       % If no intersections found move to next ray.
       if( isempty( tIntersect ) )
         continue;

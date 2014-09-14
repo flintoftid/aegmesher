@@ -11,23 +11,168 @@
 
 ### Integrate Michael's non-uniform mesh generation algorithm.
 
-### Add more of Michael's tests to the test-suite.
+### Add more of Michael's tests to the test-suite, particularly for nonuniform case.
 
 ### Complete first draft of a full user manual.
 
-### Review all tolerances
+### Review setting and use of all tolerances and improve user documentation of these
 
-Dtermine if they ere they absolute or relative, units.
-Can they be set to robust values based on the element sizes in the input mesh
-and cell sizes in the target mesh?
+Name: epsCoalesceLines
+Used in: meshCreateLines()
+Units: metres
+Default: 1e-4 m
+Purpose: Combine closely space contraints points within this distance
+Issues: Not transitive, not scale invariant
+Changes: Could it be set using the smallest mesh size *requested*, e.g.
+         epsCoalesceLines = 1e-4 * minMeshSize;
+         Since mesh lines not known at this stage need to know minimum from
+         constraints imposed.
+         
+Name: epsCompVol
+Used in: meshCreateCubicMeshLines(), meshCreateNonUniformMeshLines() , meshCreateUniformMeshLines()
+Units: metres
+Default: 1e-6
+Purpose: Tolerance on removing spare cells to tighten the computational volume.
+Issues: Not scale invariant
+Changes: Could be applied in relative terms to mesh size, e.g.
+         epsCompVol = 1e-4 * minMeshSize;
+
+Name: epsRayEnds (1)
+Used in: meshBBoxRayIntersection(), meshTriRayIntersection1(), meshTriRayIntersection2(), meshTriRayIntersection3() 
+Units: normalised ray parameter
+Default: 1e-6
+Purpose: Inclusion/exlusion of intersections at rayEnds depending on value of isIncludeRayEnds 
+         Only important for divergent ray volume mapping when far end of ray is within the mapped volume.
+Issues: See (*) below
+Changes:  Make absolute, but determined from minimum mesh size in groups to be meshed.
+          
+Name: epsRayEnds (2)
+Used in: meshSurfaceMapParallelRays(), meshVolumeMapParallelRays()
+Units: metres
+Default 1e-6 m
+Purpose: Used to offset ends of ray origin and end points to ensure ray covers the AABB
+Issues: Different use and units to above, not scale invariant. Value probably isn't
+        critical or really realted to other uses. 
+Changes: After change use same as above. 
+             
+Name: epsRayEnds (3)             
+Used in: meshVolumeMapDivergentRays
+Units: normalised ray parameter
+Default: 1e-6
+Purpose: Used to determine if an intersection point is close to a cell centre and hence resolver should be applied 
+Issues: See (*) below
+Changes: Rename or should we use epsResolver?
+               
+Name: epsRayEnds (4)             
+Used in: meshIntersectFBVH(), meshTriRayIntersection1(), meshTriRayIntersection2(), meshTriRayIntersection3() 
+Units: normalised barycentric coords of element
+Default: 1e-6
+Purpose: Determination of ray hitting edge of element 
+Issues: Different purpose to above. See also (*) below
+Changes: Rename and make absolute, but determined from minimum mesh size and element size in groups to be meshed, e.g. 
+         epsRayEdgeAbs = epsRayEdgeRel * min( [ minMeshSize , minElementSize ] );
+         Need to 
+
+Name: epsParallelRay
+Used in: meshTriRayIntersection1(), meshTriRayIntersection2(), meshTriRayIntersection3()
+Units: m^3
+Default: 1e-12
+Purpose: Used to determine if a ray is parallel to an element and if an element is front-facing
+Issues: Not scale invariant, misses intersections on near parallel elements.
+Changes: The determinant is given by
+                 
+         det = ||edge1|| ||edge2|| ||dir|| cos( alpha )
+                 
+         where 
+         
+         ||dir||      - is the length of an unnormalised finite ray ~ size of AABB
+         ||edge1/2||  - are element edge lengths - could be very small to significant 
+                        proportion of object AABB.
+         cos( alpha ) = cos( pi/2 - epsAngle ) ~ epsAngle
+         
+         So test for parallelism is 
+         
+         abs( det ) ~ ||edge1|| ||edge2|| ||dir|| epsAngle
+                    ~ maxElementSize^2 * sizeOfAABB * epsAngle
+ 
+         The RHS product could have a huge range so rigorously it seems like the most 
+         robust method is to make epsParallelRay = epsAngle and calculate the norms: 
+         
+         %rownorm = @(X,P) sum( abs( X ).^P , 2 ).^(1/P);
+         rownorm2 = @(X) sqrt( sum( X.^2 , 2 ) );
+         %rownorm2 = @(X) sqrt( X(:,1) .* X(:,1) + X(:,2) .* X(:,2) + X(:,3) .* X(:,3) );
+         parallel = ( abs( det ) < rownorm2( edge1 ) .* rownorm2( edge2 ) .* rownorm2( dir ) .* epsParallelRay );
+         
+         However the norms are expensive to determine, so a heuristic
+         is often applied - see [4, ch. 2.4.4].
   
-The parallel ray/element detection algorithm in meshTriRayIntersection1/2/3 
-is not robust. It depends on the mesh and elements mesh sizes - see the comment
-in the function file. In particular it will fail if the mesh elements are small
-the test is not scale invariant. A full calculation in terms of a tolerance on
-the angle may be too expensive, but a better heuristic could be derived by 
-analysing the mesh to find the smallest elements sizes and ray lengths.
-E.g find minMeshSize and use to determine epsParallelRays, epsRayEnds?
+         det > epsParallelRay
+         abs( det ) > rownorm2( edge1 ) .* rownorm2( edge2 ) .* rownorm2( dir ) .* epsParallelRay
+
+         *BUT* this still means we could miss an intersection at grazing angles. See (+) below.
+         
+         
+Name: epsUniqueIntersection
+Used in: meshResolveRayVolume()
+Units: normalised ray parameter
+Default: 1e-6
+Purpose: Used to find potentially equivalent intersections, e.g. hitting edge/vertex in multiple triangles. 
+Issues: See (*) below
+Changes: Should be set high enuogh to catch numerical rounding effects but much smaller than any
+         distance between surfaces in the mesh. 
+         Should probably be << minMeshSize, << minElementSize 
+
+Name: epsResolver
+Used in: meshSurfaceMapParallelRays()
+Units: relative tolerance on normalised ray parameter
+Default: 1e-12
+Purpose: Relative tolerance on normalised ray parameters used to round intersections 
+         to see if the are near cell centres and resolver should be used.
+Issues: Not scale invariant.
+Changes: Should be absolute and determined from cell size etc.
+
+(*) General issue: Tolarances on normalised ray parameters t, u, v.
+These are difficult to set. Parameters are normalised to the range 0 to 1 
+so it at first looks like they can be fixed. However, the normalisation
+is different for different rays/elements which could be of greatly different
+sizes, so this will not be scale invariant. For example, the effect on 
+neighbouring elements of greatly differing sizes could be important. So they 
+are not true relative tolerances. Maybe they should be treated as absolute 
+tolerance in some sense - some heuristic derived from the smallest mesh 
+and elements sizes could be used? 
+
+For rays:
+
+    r = r0 + t * dir       with 0 <= t <= 1
+    
+      = r0 + tn * tunit    with 0 <= tn <= || dir ||
+      
+    dr = dt * || dir || = d(tn)
+    
+    epsRayEndsAbs = epsRayParameter * || dir ||
+    
+    epsRayEndsAbs = epsRayEndsRel * minMeshSize
+    
+    epsRayParameter = epsRayEndsRel * minMeshSize / || dir ||
+    
+For triangles:
+ 
+    epsRayEdgeRel = epsRayEdgeAbs / sqrt( || edge1 || * ||edge2|| )
+
+(+) See also the watertight algorithm in
+
+http://jcgt.org/published/0002/01/05/paper.pdf  
+
+which uses an algorithm that gaurantees not to miss intersections - also 
+with guarantees about hits on neighbouring triangles. It also makes some
+statements about parallel rays which could be significant. The parallel
+test uses and exact zero and claims intersections are guaranteed to be
+detected in neighbouring triangles. This has been implemented in 
+meshTriRayIntersection4() but not tested.
+
+
+http://totologic.blogspot.fr/2014/01/accurate-point-in-triangle-test.html
+http://geomalgorithms.com/a06-_intersect-2.html
 
 
 ## General
@@ -293,8 +438,6 @@ and generate Gmsh data - can put in separate .msh files and merge.
 * What is the current dominant contribution to the mapping time?
 
 ### Check BVH is tuned correctly. What happens if we double Nc?
-  
-### Make a function to tune BVH on real meshes.
   
 ### Speed up ray AABB intersection calculation.
 

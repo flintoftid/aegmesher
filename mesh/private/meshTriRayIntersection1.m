@@ -134,8 +134,7 @@ function [ isIntersect , t , u , v , isFrontFacing ] = meshTriRayIntersection1( 
   pvec = cross( dir , edge2 , 2 );
   % Determinant of the matrix M = dot( edge1 , pvec ).
   det = sum( edge1 .* pvec , 2 );  
-  % Boolean indicating if elements are "front facing".
-  isFrontFacing = det > epsParallelRay;
+  
   % If determinant is near zero then ray lies in the plane of the triangle.
   % det = ||edge1|| ||edge2|| ||dir|| cos( alpha )
   % If dir normalised ||dir||=1. If dir a segment could be size of object AABB.
@@ -149,11 +148,16 @@ function [ isIntersect , t , u , v , isFrontFacing ] = meshTriRayIntersection1( 
   %rownorm2 = @(X) sqrt( sum( X.^2 , 2 ) );
   %rownorm2 = @(X) sqrt( X(:,1) .* X(:,1) + X(:,2) .* X(:,2) + X(:,3) .* X(:,3) );
   %epsParallelRay = 1e-4;
-  %parallel = ( abs( det ) < rownorm2( edge1 ) .* rownorm2( edge2 ) .* rownorm2( dir ) .* epsParallelRay );
-  parallel = ( abs( det ) < epsParallelRay );
-
+  %isParallel = ( abs( det ) < rownorm2( edge1 ) .* rownorm2( edge2 ) .* rownorm2( dir ) .* epsParallelRay );
+  
+  % Boolean indicating if elements are "front facing".
+  isFrontFacing = det > epsParallelRay;
+  
+  % Boolean indicating if elements are "front facing".
+  isParallel = ( abs( det ) < epsParallelRay );
+  
   % If all parallel then no intersections.
-  if( all( parallel ) )
+  if( all( isParallel ) )
     return; 
   end % if 
 
@@ -168,11 +172,11 @@ function [ isIntersect , t , u , v , isFrontFacing ] = meshTriRayIntersection1( 
   if( isTwoSidedTri )
     % Treat triangles as two sided.
     % Change to avoid division by zero.
-    det( parallel ) = 1;
+    det( isParallel ) = 1;
     % Calculate u parameter used to test bounds.
     u = sum( tvec .* pvec ,2 ) ./ det;                   
     % Mask which allows performing next 2 operations only when needed.
-    ok = ( ~parallel & u >= -zero & u <= 1.0 + zero );    
+    ok = ( ~isParallel & u >= -zero & u <= 1.0 + zero );    
     % If all ray/plane intersections are outside the triangle then no intersections. 
     if( ~any( ok ) )
       return; 
@@ -190,7 +194,7 @@ function [ isIntersect , t , u , v , isFrontFacing ] = meshTriRayIntersection1( 
       return; 
     end % if
     % Intersection between origin and destination.
-    isIntersect = (isIntersect & t >= -zero & t <= 1.0 + zero );
+    isIntersect = ( isIntersect & t >= -zero & t <= 1.0 + zero );
   else
     % Treat triangles as one sided.
     % Calculate u parameter used to test bounds.
@@ -205,7 +209,7 @@ function [ isIntersect , t , u , v , isFrontFacing ] = meshTriRayIntersection1( 
     qvec = cross( tvec(ok,:) , edge1(ok,:) , 2 );
     % Calculate v parameter used to test bounds.
     v(ok,:) = sum( dir(ok,:) .* qvec , 2 );        
-    isIntersect = ( det > epsParallelRay & u >= -zero & v >= -zero & u + v <= det * ( 1 + zero ) );
+    isIntersect = ( isFrontFacing & u >= -zero & v >= -zero & u + v <= det * ( 1 + zero ) );
     if( nargout == 1 && isInfiniteRay )
       return; 
     end % if
@@ -222,5 +226,5 @@ function [ isIntersect , t , u , v , isFrontFacing ] = meshTriRayIntersection1( 
     % Intersection between origin and destination.
     isIntersect = ( isIntersect & t >= -zero & t <= 1.0 + zero ); 
   end % if
-
+  
 end % function
