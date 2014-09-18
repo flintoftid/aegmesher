@@ -159,61 +159,14 @@ function [ lines ] = meshCreateLines( mesh , groupNamesToAnalyse , options )
   % Velocity of light in free-space.
   c0 = 299792458;
 
+  % Initialise constraints AABBs.
+  Xconstraints = [];
+  Yconstraints = [];
+  Zconstraints = [];     
+      
   % Frequencies for sampling material parameters.
   f = linspace( options.mesh.minFreq , options.mesh.maxFreq , options.mesh.numFreqSamp );
-
-  % Determine the computational volume.
-  if( options.mesh.useMeshCompVol )
-    % Use computational volume group object from mesh.
-    compVolGroupName = options.mesh.compVolName;
-    if( ismember( compVolGroupName , mesh.groupNames ) )
-      % Find the computational volume group.
-      compVolGroupIdx = meshGetGroupIndices( mesh , { compVolGroupName } );
-      % Get AABB of computational volume.
-      compVolAABB = meshGetGroupAABB( mesh , compVolGroupIdx );
-      if( ~strcmp( options.group(compVolGroupIdx).type , 'BBOX' ) )
-        error( 'computational volume group (index %d) must have type BBOX' , compVolGroupIdx );
-      end % if
-      % In this case constraints are added from computational volume group.
-      Xconstraints = [];
-      Yconstraints = [];
-      Zconstraints = [];     
-    else
-      error( 'mesh does not contain a computational volume group called %s' , compVolGroupName );
-    end % if
-  else
-    if( ~isempty( options.mesh.compVolAABB ) )
-      % Use computational volume specified in options.
-      compVolAABB = options.mesh.compVolAABB;
-      % In this case we also need mesh size of the computational volume from the user.
-      if( options.mesh.useDensity )
-        % Free-space is assumed.
-        dmin = min( c0 ./ f ./ options.mesh.Dmax );
-        dmax = min( c0 ./ f ./ options.mesh.Dmin );
-      else
-        % If not using mesh density take mesh sizes directly from options.
-        dmin = options.mesh.dmin;
-        dmax = options.mesh.dmax;
-      end % if
-      Xconstraints = [ compVolAABB(1) , compVolAABB(4) , dmin , dmax , 1 ];
-      Yconstraints = [ compVolAABB(2) , compVolAABB(5) , dmin , dmax , 1 ];
-      Zconstraints = [ compVolAABB(3) , compVolAABB(6) , dmin , dmax , 1 ];
-    else
-      % Use minimal AABB of objects as computational volume.
-      compVolAABB = [];
-      % In this case we delay adding the constraints until we find the AABB of the objects.
-      Xconstraints = [];
-      Yconstraints = [];
-      Zconstraints = [];
-    end % if
-  end % if
-
-  if( ~isempty( compVolAABB ) )
-    fprintf( 'Computational volume AABB: [%g,%g,%g,%g,%g,%g]\n' , compVolAABB );
-  else
-    fprintf( 'Computational volume will be minimal AABB of group objects\n' );  
-  end % if
-  
+ 
   % Get group indices of groups to be analysed.
   if( isempty( groupNamesToAnalyse ) )
     groupNamesToAnalyse = mesh.groupNames;
@@ -224,6 +177,17 @@ function [ lines ] = meshCreateLines( mesh , groupNamesToAnalyse , options )
   numGroupsToAnalyse = length( groupIdxToAnalyse );
   groupTypesToAnalyse = mesh.groupTypes(groupIdxToAnalyse);
 
+  % Get computational volume name if required.
+  if( options.mesh.useMeshCompVol )
+    compVolGroupName = options.mesh.compVolName;
+  else
+    compVolGroupName = '';  
+  end % if
+  
+  compVolAABB = [];
+  compVol_dmin = [];
+  compVol_dmin = [];    
+      
   fprintf( 'Analysing %d groups\n' , numGroupsToAnalyse );
 
   % Analyse each group in turn.
@@ -231,6 +195,7 @@ function [ lines ] = meshCreateLines( mesh , groupNamesToAnalyse , options )
 
     % Name and index of group in unstructured mesh.
     thisGroupName = groupNamesToAnalyse{newGroupIdx};
+        
     thisGroupIdx = groupIdxToAnalyse(newGroupIdx);
     fprintf( 'Analysing group "%s" (index %d)\n' , thisGroupName , thisGroupIdx );
 
@@ -273,6 +238,15 @@ function [ lines ] = meshCreateLines( mesh , groupNamesToAnalyse , options )
       dmax = thisOptions.dmax;
     end % if
 
+    % If this is the computation volume group keep its AABB and mesh size but don't
+    % add to the constraints yet.
+    if( strcmp( thisGroupName , compVolGroupName ) )
+      compVolAABB = thisAABB;
+      compVol_dmin = dmin;
+      compVol_dmax = dmax;      
+      continue;
+    end % if
+    
     % Add group's mesh requirements to list of constraints for each direction.
     weight = thisOptions.weight;
     Xconstraints = [ Xconstraints ; thisAABB(1) , thisAABB(4) , dmin , dmax , weight ];
@@ -284,31 +258,76 @@ function [ lines ] = meshCreateLines( mesh , groupNamesToAnalyse , options )
 
   end % for
 
-  % Set the computational volume to the minmal AABB of group elements if is is not already set.
-  if( isempty( compVolAABB ) )
-    compVolAABB = [ min( Xconstraints(:,1) ) , min( Yconstraints(:,1) ) , min( Zconstraints(:,1) ) , ...
-      max( Xconstraints(:,2) ) , max( Yconstraints(:,2) ) , max( Zconstraints(:,2) ) ];
-    fprintf( 'Computational volume AABB: [%g,%g,%g,%g,%g,%g]\n' , compVolAABB );
+  % Determine the computational volume.
+  if( options.mesh.useMeshCompVol )
+    % Use computational volume group object from mesh. We should have
+    % found this above.
+    if( isempty( compVolAABB ) )
+      error( 'mesh does not contain a computational volume group called %s' , compVolGroupName );    
+    end % if
+    fprintf( 'Computational volume AABB from mesh: [%g,%g,%g,%g,%g,%g]\n' , compVolAABB );  
+  elseif( ~isempty( options.mesh.compVolAABB ) )
+    % Use computational volume specified in options.
+    compVolAABB = options.mesh.compVolAABB;
+    fprintf( 'Computational volume AABB from options: [%g,%g,%g,%g,%g,%g]\n' , compVolAABB );     
     % In this case we also need mesh size of the computational volume from the user.
     if( options.mesh.useDensity )
       % Free-space is assumed.
-      dmin = min( c0 ./ f ./ options.mesh.Dmax );
-      dmax = min( c0 ./ f ./ options.mesh.Dmin );
+      compVol_dmin = min( c0 ./ f ./ options.mesh.Dmax );
+      compVol_dmax = min( c0 ./ f ./ options.mesh.Dmin );
     else
       % If not using mesh density take mesh sizes directly from options.
-      dmin = options.mesh.dmin;
-      dmax = options.mesh.dmax;
+      compVol_dmin = options.mesh.dmin;
+      compVol_dmax = options.mesh.dmax;
     end % if
-    Xconstraints = [ Xconstraints ; compVolAABB(1) , compVolAABB(4) , dmin , dmax , 1 ];
-    Yconstraints = [ Yconstraints ; compVolAABB(2) , compVolAABB(5) , dmin , dmax , 1 ];
-    Zconstraints = [ Zconstraints ; compVolAABB(3) , compVolAABB(6) , dmin , dmax , 1 ];
+  else
+    % Use minimal AABB of objects as computational volume.
+    compVolAABB = [ min( Xconstraints(:,1) ) , min( Yconstraints(:,1) ) , min( Zconstraints(:,1) ) , ...
+                    max( Xconstraints(:,2) ) , max( Yconstraints(:,2) ) , max( Zconstraints(:,2) ) ];
+    fprintf( 'Computational volume AABB from mininal AABB of objects: [%g,%g,%g,%g,%g,%g]\n' , compVolAABB );
+    % In this case we also need mesh size of the computational volume from the user.
+    if( options.mesh.useDensity )
+      % Free-space is assumed.
+      compVol_dmin = min( c0 ./ f ./ options.mesh.Dmax );
+      compVol_dmax = min( c0 ./ f ./ options.mesh.Dmin );
+    else
+      % If not using mesh density take mesh sizes directly from options.
+      compVol_dmin = options.mesh.dmin;
+      compVol_dmax = options.mesh.dmax;
+    end % if 
   end % if
-
+ 
   % Check computational volume has finite volume. 
   if( compVolAABB(4) <= compVolAABB(1) || compVolAABB(5) <= compVolAABB(2) || compVolAABB(6) <= compVolAABB(3) )
     error( 'Computational volume has zero or negative volume!' );
   end % if
-  
+
+  % Truncate constraints AABBs to computational volume
+  % and delete constraint AABBs wholy outside the computational volume.
+  idx = find( Xconstraints(:,1) < compVolAABB(1) );
+  Xconstraints(idx,1) = compVolAABB(1);
+  idx = find( Xconstraints(:,2) > compVolAABB(4) );
+  Xconstraints(idx,2) = compVolAABB(4);
+  idx = find( Xconstraints(:,1) > Xconstraints(:,2) );
+  Xconstraints(idx,:) = [];  
+  idx = find( Yconstraints(:,1) < compVolAABB(2) );
+  Yconstraints(idx,1) = compVolAABB(2);
+  idx = find( Yconstraints(:,2) > compVolAABB(5) );
+  Yconstraints(idx,2) = compVolAABB(5);
+  idx = find( Yconstraints(:,1) > Yconstraints(:,2) );
+  Yconstraints(idx,:) = [];  
+  idx = find( Zconstraints(:,1) < compVolAABB(3) );
+  Zconstraints(idx,1) = compVolAABB(3);
+  idx = find( Zconstraints(:,2) > compVolAABB(6) );
+  Zconstraints(idx,2) = compVolAABB(6);
+  idx = find( Zconstraints(:,1) > Zconstraints(:,2) );
+  Zconstraints(idx,:) = [];  
+
+  % Add the computational volume to the constraints.
+  Xconstraints = [ compVolAABB(1) , compVolAABB(4) , compVol_dmin , compVol_dmax , 1 ];
+  Yconstraints = [ compVolAABB(2) , compVolAABB(5) , compVol_dmin , compVol_dmax , 1 ];
+  Zconstraints = [ compVolAABB(3) , compVolAABB(6) , compVol_dmin , compVol_dmax , 1 ];   
+
   % Process constraints in each direction.
   [ X , Xweight , dx_min , dx_max ] = processConstraints( Xconstraints , options.mesh.epsCoalesceLines );
   [ Y , Yweight , dy_min , dy_max ] = processConstraints( Yconstraints , options.mesh.epsCoalesceLines );
@@ -349,26 +368,6 @@ function [ lines ] = meshCreateLines( mesh , groupNamesToAnalyse , options )
   otherwise
     error( 'Invalid mesh type %s' , options.mesh.meshType );
   end % switch
-
-  % If computational volume should be tight ensure exact.
-  if( options.mesh.compVolIsTight(1) ) 
-    lines.x(1) = compVolAABB(1);
-  end % if
-  if( options.mesh.compVolIsTight(2 ) )
-    lines.y(1) = compVolAABB(2);
-  end % if
-  if( options.mesh.compVolIsTight(3) )
-    lines.z(1) = compVolAABB(3);
-  end % if
-  if( options.mesh.compVolIsTight(4) )
-    lines.x(end) = compVolAABB(4);
-  end % if
-  if( options.mesh.compVolIsTight(5) )
-    lines.y(end) = compVolAABB(5);
-  end %if
-  if( options.mesh.compVolIsTight(6) )
-    lines.z(end) = compVolAABB(6);
-  end % if
 
   fprintf( 'Mapped computational volume AABB: [%g,%g,%g,%g,%g,%g]\n' , lines.x(1) , lines.y(1) , lines.z(1) , ...
                                                                 lines.x(end) , lines.y(end) , lines.z(end) );

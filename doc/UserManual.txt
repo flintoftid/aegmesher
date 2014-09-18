@@ -278,8 +278,11 @@ Tolerance [FIXME].
 
 #### compVolIsTight
 
-Booleen vector indicating if lowest and highest mesh lines should be forced to be exactly
-conincident with the computational volume.
+Not implemented yet.
+
+Booleen vector indicating if the lowest and highest mesh lines in each direction should be 
+forced to be exactly conincident with the computational volume. This is only possible on 
+non-uniform meshes.
 
 #### useDensity
 

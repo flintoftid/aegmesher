@@ -10,7 +10,7 @@ function [ isX , isY , isZ ] = meshLineMapGroup( mesh , groupIdx , lines , objBB
 % groupIdx   - scalar integer, index of group to map.
 % lines      - structures contains mesh lines - see help for meshCreateLines.
 % objBBox()  - real(6), AABB of group in real unit.
-% idxBBox()  - integer(6), indeix AABB of group on structured mesh. 
+% idxBBox()  - integer(6), index AABB of group on structured mesh. 
 % options    - structure containing options for intersection function - see help for meshTriRayIntersection().
 %
 % Outputs:
@@ -52,6 +52,12 @@ function [ isX , isY , isZ ] = meshLineMapGroup( mesh , groupIdx , lines , objBB
 % Proof of concept line object mapper.
 % Needs validation and optimisation/vecotrisation.
 
+  % Function to determine if points in within or on an AABB.
+  isPointInAABB=@(bbox,point) ( all( bbox(1:3) <= point ) && all( point <= bbox(4:6) ) );
+  
+  % Function to determine if a line is wholly within or on an AABB.
+  isLineInAABB=@(bbox,end1,end2) ( isPointInAABB(bbox,end1) && isPointInAABB(bbox,end2) );
+
   % Range of segment sampling densities.
   options.minLineSegDensity = 2;
   options.maxLineSegDensity = 16;
@@ -69,48 +75,14 @@ function [ isX , isY , isZ ] = meshLineMapGroup( mesh , groupIdx , lines , objBB
   yLocal = lines.y(idxBBox(2):idxBBox(5));
   zLocal = lines.z(idxBBox(3):idxBBox(6));
 
+  % Intersection of CV with group. This could be degenerate!
+  cvAABB = [ xLocal(1) , yLocal(1) , zLocal(1) , xLocal(end) , yLocal(end) , zLocal(end) ];
+
   % Get groups elements
   elementIdx = nonzeros( mesh.groups(:,groupIdx) );
 
   % Extract line segments into full array.
   segments = full(mesh.elements(1:2,elementIdx));
-
-%    % Get node counts. Currenlty we assume there are no closed loops 
-%    % in the curve except for the case where the whole curve is closed.
-%    nodeCount = ( sparse( segments , 1 , 1 ) );
-%  
-%    % Distinct end points should only occur once.
-%    endNodeIdx = find( nodeCount == 1 );
-%    
-%    if( isempty( endNodeIdx ) )
-%      % Must be a closed curve. Arbitrarily take first node as start/end point.
-%      isClosed = true;
-%      startNode = segments(1,1);
-%      endNode = segments(1,1);
-%      segment = segments(1,:);
-%      lastNode = sum( segment .* ( segment ~= startNode ) );
-%      segments(1,:) = [];
-%      orderedNodes = [ startNode , lastNode ];
-%      else
-%      % Open curve.
-%      isClosed = false;
-%      startNode = endNodeIdx(1);
-%      endNode = endNodeIdx(2);
-%      lastNode = startNode;  
-%      orderedNodes = [ startNode ];
-%    end % if
-%  
-%    % Assemble segments into order. Assumes no internal loops.
-%    while( ~isempty( segments ) )
-%      idx = find( any( segments == lastNode , 2 ) );
-%      assert( length( idx ) == 1 );
-%      segment = segments(idx,:);
-%      lastNode = sum( segment .* ( segment ~= lastNode ) );
-%      orderedNodes = [ orderedNodes , lastNode ];
-%      segments(idx,:) = [];
-%    end % while  
-%  
-%    assert( lastNode == endNode );
 
   % Count number of structured edges added for this line object.
   edgeCount = 0;
@@ -125,10 +97,29 @@ function [ isX , isY , isZ ] = meshLineMapGroup( mesh , groupIdx , lines , objBB
     % Get coordinates of segment end points.
     segBeginNodeCoords = full( mesh.nodes( 1:3 , segBeginNodeIdx ) );
     segEndNodeCoords = full( mesh.nodes( 1:3 , segEndNodeIdx ) );
+
+    % If segments is wholly outside AABB go to next segment.
+    if( ~isLineInAABB( cvAABB , segBeginNodeCoords' , segEndNodeCoords' ) )
+      continue;
+    end % if
     
-    % [FIXME] If one or both end points is outside the grid lines find
-    % points of intersection with AABB of grid lines and truncate segment.
-    
+    % If segments cuts AABB truncate segment to AABB.
+    origin = segBeginNodeCoords;
+    dir = segEndNodeCoords - segBeginNodeCoords;
+    invDir = 1 ./ dir;
+    dirIsNeg = 3 .* ( dir < 0 );
+    % [FIXME] Does this function cope with degenerate AABBs?
+    [ isIntersection , tmin , tmax ] = meshBBoxRayIntersection( origin , dir , invDir , dirIsNeg , cvAABB , options );
+    %[ isIntersection , tmin , tmax ] = meshBBoxRayIntersection2( origin , dir , invDir , dirIsNeg , cvAABB , options );
+    if( isIntersection )
+      if( tmin >= 0 && tmin <= 1.0 )
+        segBeginNodeCoords = origin + tmin .* dir;
+      end %if
+      if( tmax >= 0 && tmax <= 1.0 )
+        segEndNodeCoords = origin + tmax .* dir;
+      end % if
+    end % if
+ 
     % Closest point in structured mesh to beginning of segment. 
     [ xBegin , iBegin ] = min( abs( xLocal - segBeginNodeCoords(1) ) );
     [ yBegin , jBegin ] = min( abs( yLocal - segBeginNodeCoords(2) ) );

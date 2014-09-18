@@ -1,8 +1,8 @@
-function [ isIntersection , tmin , tmax ] = meshBBoxRayIntersection( origin , dir , invDir , dirIsNeg , bbox , options )
+function [ isIntersection , tmin , tmax ] = meshBBoxRayIntersection2( origin , dir , invDir , dirIsNeg , bbox , options )
 % 
-% meshBBoxRayIntersection - Determine if a ray intersects an axis-aligned bounding-box (AABB).
+% meshBBoxRayIntersection2 - Determine if a ray intersects an axis-aligned bounding-box (AABB).
 %
-% [ isIntersection , tmin , tmax ] = meshBBoxRayIntersection( origin , dir , invDir , dirIsNeg , bbox [ , options ] )
+% [ isIntersection , tmin , tmax ] = meshBBoxRayIntersection2( origin , dir , invDir , dirIsNeg , bbox [ , options ] )
 %
 % Inputs:
 %
@@ -85,41 +85,74 @@ function [ isIntersection , tmin , tmax ] = meshBBoxRayIntersection( origin , di
     zero = -epsRayEnds;
   end % if
 
-  tmin  = ( bbox(1+dirIsNeg(1)) - origin(1) ) * invDir(1);
-  tmax  = ( bbox(4-dirIsNeg(1)) - origin(1) ) * invDir(1);
-  tymin = ( bbox(2+dirIsNeg(2)) - origin(2) ) * invDir(2);
-  tymax = ( bbox(5-dirIsNeg(2)) - origin(2) ) * invDir(2);
-
-  if( ( tmin > tymax ) || ( tymin > tmax ) )
-    isIntersection = false;
-    return;
-  end % if
-  if( tymin > tmin )
-    tmin = tymin;
-  end % if
-  if( tymax < tmax )
-    tmax = tymax;
-  end % if
-  
-  tzmin = ( bbox(3+dirIsNeg(3)) - origin(3) ) * invDir(3);
-  tzmax = ( bbox(6-dirIsNeg(3)) - origin(3) ) * invDir(3);
-
-  if( ( tmin > tzmax ) || ( tzmin > tmax ) )
-    isIntersection = false;
-    return;
-  end % if
-
-  if( tzmin > tmin )
-    tmin = tzmin;
-  end % if
-  if( tzmax < tmax )
-    tmax = tzmax;
-  end % if
+  len = norm( dir );
+  dir = dir ./ len;
+  invDir = len .* invDir;
 
   if( isInfiniteRay )
-    isIntersection = ( tmin < Inf ) && ( tmax > -Inf );
-  else 
-    isIntersection = ( tmax >= -zero && tmin <= 1.0 + zero );
+    tmin = -Inf;
+    tmax = Inf;
+  else
+    tmin = 0.0 - zero;
+    tmax = len + zero;    
   end % if
+  
+  if( abs( dir(1) ) ~= 0 )
+    t1 = ( bbox(1) - origin(1) ) * invDir(1);
+    t2 = ( bbox(4) - origin(1) ) * invDir(1);
+    if( t1 < t2 )
+      tmin = max( [ t1 , tmin ] );
+      tmax = min( [ t2 , tmax ] );
+    else 
+      tmin = max( [ t2 , tmin ] );
+      tmax = min( [ t1 , tmax ] );
+    end % if
+    if( tmin > tmax )
+      isIntersection = false;
+      return;
+    end % if
+  elseif( origin(1) < bbox(1) || origin(1) > bbox(4) )
+    isIntersection = false;
+    return;
+  end % if
+  
+  if( abs( dir(2) ) ~= 0 )
+    t1 = ( bbox(2) - origin(2) ) * invDir(2);
+    t2 = ( bbox(5) - origin(2) ) * invDir(2);
+    if( t1 < t2 )
+      tmin = max( [ t1 , tmin ] );
+      tmax = min( [ t2 , tmax ] );
+    else
+      tmin = max( [ t2 , tmin ] );
+      tmax = min( [ t1 , tmax ] );
+    end % if
+    if( tmin > tmax )
+      isIntersection = false;
+      return;
+    end % if
+  elseif( origin(2) < bbox(2) || origin(2) > bbox(5) )
+    isIntersection = false;
+    return;
+  end % if
+  
+  if( abs( dir(3) ) ~= 0 )
+    t1 = ( bbox(3) - origin(3) ) * invDir(3);
+    t2 = ( bbox(6) - origin(3) ) * invDir(3);
+    if( t1 < t2 )
+      tmin = max( [ t1 , tmin ] );
+      tmax = min( [ t2 , tmax ] );
+    else
+      tmin = max( [ t2 , tmin ] );
+      tmax = min( [ t1 , tmax ] );
+    end % if
+  elseif( origin(3) < bbox(3) || origin(3) > bbox(6) )
+    isIntersection = false;
+    return;
+  end % if
+
+  isIntersection = ( tmin <= tmax );
+  
+  tmin = tmin / len;
+  tmax = tmax / len;
 
 end % function

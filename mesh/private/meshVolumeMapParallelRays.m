@@ -106,10 +106,12 @@ function [ isInside  ] = meshVolumeMapParallelRays( mesh , fbvh , elementMap , x
   zCellCentres = 0.5 * ( zLocal(1:(end-1)) + zLocal(2:end) );
   
   % Create finite ray along midpoints of cells from front to back face of object AABB. 
-  zOrigin = zLocal(1) - options.epsRayEnds;
-  zDestination = zLocal(end) + options.epsRayEnds;
+  %zOrigin = zLocal(1) - options.epsRayEnds;
+  %zDestination = zLocal(end) + options.epsRayEnds;
+  zOrigin = objBBox(3) - options.epsRayEnds;
+  zDestination = objBBox(6) + options.epsRayEnds;
   zDir = zDestination - zOrigin;
-  
+
   % Ray parameter at face centres.
   tFaceCentres = ( zLocal - zOrigin ) / zDir;
 

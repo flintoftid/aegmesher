@@ -11,9 +11,11 @@
 
 ### Integrate Michael's non-uniform mesh generation algorithm.
 
-### Add more of Michael's tests to the test-suite, particularly for nonuniform case.
+### Add more of Michael's tests to the test-suite, particularly for the nonuniform case.
 
 ### Complete first draft of a full user manual.
+
+### Determine why TIMING_intersect test fails with such a big margin on 32-bit Linux.
 
 ### Review setting and use of all tolerances and improve user documentation of these
 
@@ -170,6 +172,7 @@ test uses and exact zero and claims intersections are guaranteed to be
 detected in neighbouring triangles. This has been implemented in 
 meshTriRayIntersection4() but not tested.
 
+Other refs:
 
 http://totologic.blogspot.fr/2014/01/accurate-point-in-triangle-test.html
 http://geomalgorithms.com/a06-_intersect-2.html
@@ -196,6 +199,11 @@ problem depending on the usage of the output. Maybe should issue warning.
 ### Add function to load user defined mesh lines:
 
     [ lines ] = meshReadMeshLine( xFileName , yFileName , zFileName )
+
+### Review mechanisms for forcing mesh lines exactly onto CV boundary:
+
+Use weighting of CV constraint points to tighten.
+Implement isCompVolTight for non-uniform meshes.
 
 ### Add user defined constraint points to mesh line creation function.
 
@@ -286,12 +294,6 @@ bounding box to the structured mesh?
 E.g. cube at 45 degrees.
 Improve algorithm so get similar results from CLOSED_SURFACE and SURFACE
 mapping. This is hard.
-
-### Check solid and surface mappers still deal with truncated objects.
-
-### Make line mapper deal with truncated objects.
-  
-### Make node mapper deal with truncated objects.
 
 ### Support other surface elements
 

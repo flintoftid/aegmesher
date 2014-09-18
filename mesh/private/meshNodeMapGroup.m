@@ -60,7 +60,7 @@ function [ nodeIndices ] = meshNodeMapGroup( mesh , groupIdx , lines , objBBox ,
 % construct lambda(i,j) = ( x(j) - x(i) ) / dx(i) and find the lowest line index for
 % which the condition on lambda is met.
 %
-
+  
   % Default options.
   isFloatNodeIndices = true;
 
@@ -71,6 +71,14 @@ function [ nodeIndices ] = meshNodeMapGroup( mesh , groupIdx , lines , objBBox ,
     end % if
   end % if
 
+  % Mesh lines relative to group's computational volume.     
+  xLocal = lines.x(idxBBox(1):idxBBox(4));
+  yLocal = lines.y(idxBBox(2):idxBBox(5));
+  zLocal = lines.z(idxBBox(3):idxBBox(6));
+
+  % Intersection of CV with group. This could be degenerate!
+  cvAABB = [ xLocal(1) , yLocal(1) , zLocal(1) , xLocal(end) , yLocal(end) , zLocal(end) ];
+  
   % Get element indices to be mapped.
   elementIdx = nonzeros( mesh.groups(:,groupIdx) );
   % Get nodes indices for all mapped elements.
@@ -78,9 +86,14 @@ function [ nodeIndices ] = meshNodeMapGroup( mesh , groupIdx , lines , objBBox ,
 
   % Get the nodes.
   nodes = mesh.nodes(:,nodeIdx);
-  numNodes = size( nodes , 2 );
-  
+
+  % Delete nodes outside the computational volume.
+  outIdx = find( cvAABB(1) >= nodes(1,:) & cvAABB(2) >= nodes(2,:) & cvAABB(3) >= nodes(3,:) & ...
+                 nodes(1,:) >= cvAABB(4) & nodes(2,:) >= cvAABB(5) & nodes(3,:) >= cvAABB(6) );  
+  nodes(:,outIdx) = [];
+
   % Initialise mapped node index array.
+  numNodes = size( nodes , 2 );
   nodeIndices = zeros( numNodes , 6 );
  
   % Mesh lines in direction referencable form.

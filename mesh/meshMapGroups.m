@@ -174,7 +174,7 @@ function [ smesh ] = meshMapGroups( mesh , groupNamesToMap , lines , options )
       % Check group maps to non-zero volume on structured mesh. 
       if( idxBBox(4) <= idxBBox(1) || idxBBox(5) <= idxBBox(2) || idxBBox(6) <= idxBBox(3) )
         % This should only happen if group AABB has zero volume.
-        fprintf( '  Group has no cells within computational volume - ignoring' )
+        fprintf( '  Group has no cells within computational volume - ignoring\n' )
       else
         % Map the group. Use the new group index in the structured mesh.
         % Cells at imax, jmax, kmax will not be used for volumetric objects.
@@ -228,7 +228,7 @@ function [ smesh ] = meshMapGroups( mesh , groupNamesToMap , lines , options )
       % Check group maps to non-zero volume on structured mesh. 
       if( idxBBox(4) <= idxBBox(1) || idxBBox(5) <= idxBBox(2) || idxBBox(6) <= idxBBox(3) )
         % This should only happen if group AABB has zero volume.
-        fprintf( '  Group has no cells within computational volume - ignoring' )
+        fprintf( '  Group has no cells within computational volume - ignoring\n' )
       else
         % Map the group as a solid.
         % Cells at imax, jmax, kmax will not be used for volumetric objects.

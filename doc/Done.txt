@@ -162,3 +162,15 @@ Mostly done, needs validating.
   Or identify and fix div by zeros in FBVH generation for line objects. 
 * Optmise meshSurfaceMapParallelRays - move fixed values out of x/y loops.
 * Find way to automatically generate ReadMe.txt from Wiki home page.
+
+## Review situation where computational volume truncates objects in mesh
+
+* Remove constraints points outside CV. Done.
+* Add constraints points on CV. Done.
+* Check solid mappers still deal with truncated objects. 
+    + Divergent rays OK.
+    + Parallel rays hosed because the ray only spans the part of the object within
+      the CV. Fixed.
+* Check surface mappers still deal with truncated objects. Done
+* Make line mapper deal with truncated objects. Done.
+* Make node mapper deal with truncated objects. Done, untested.
