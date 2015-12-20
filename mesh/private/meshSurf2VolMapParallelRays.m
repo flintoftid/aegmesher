@@ -1,9 +1,9 @@
-function [ isInside ] = meshVolumeMapDivergentRays( mesh , fbvh , elementMap , xLines , yLines , zLines , objBBox , idxBBox , diagonalNumber , options )
+function [ isInside  ] = meshSurf2VolMapParallelRays( mesh , fbvh , elementMap , xLines , yLines , zLines , objBBox , idxBBox , dirShift , options )
 %
-% meshVolumeMapDivergentRays - Map a volume group using divergent rays from outside the group AABB.
+% meshSurf2VolMapParallelRays - Map a surface to a volume group using rays parallel to one side of the AABB.
 %
-% [ isInside ] = meshVolumeMapDivergentRays( mesh , fbvh , elementMap , ...
-%                     xLines , yLines , zLines , objBBox , idxBBox , diagonalNumber , options )
+% [ isInside ] = meshSurf2VolMapParallelRays( mesh , fbvh , elementMap , ...
+%                     xLines , yLines , zLines , objBBox , idxBBox , dirShift , options )
 %
 % Inputs:
 %
@@ -16,11 +16,11 @@ function [ isInside ] = meshVolumeMapDivergentRays( mesh , fbvh , elementMap , x
 % zLines()       - real(), mesh lines in z direction.
 % objBBox()      - real(6), AABB of group in real unit.
 % idxBBox()      - integer(6), indeix AABB of group on structured mesh.
-% diagonalNumber - integer, which diagonal of AABB to place ray origin on:
+% dirShift       - integer, indicates direction of rays:
 %
-%                  1 - 'd' [FIXME]
-%                  2 - 'e' [FIMXE]
-%                  3 - 'f' [FIXME]
+%                  1 - x-direction to find YZ faces.
+%                  2 - y-direction to find ZX faces.
+%                  3 - z-direction to find XY faces.
 %
 % options        - structure containing options for intersection function - see help for meshTriRayIntersection().
 %
@@ -50,19 +50,15 @@ function [ isInside ] = meshVolumeMapDivergentRays( mesh , fbvh , elementMap , x
 % along with aegmesher.  If not, see <http://www.gnu.org/licenses/>.
 % 
 
-% Author: I. D Flintoft
+% Author: M. Berens and I. D Flintoft
 % Version: 1.0.0
 
   % Default options.
-  epsRayEnds = 1e-10;
   isUseInterpResolver = false;
   isUnresolvedInside = true;
 
   % Parse options.
   if( nargin >= 9 )
-    if( isfield( options , 'epsRayEnds' ) )
-      epsRayEnds = options.epsRayEnds;  
-    end % if
     if( isfield( options , 'isUseInterpResolver' ) )
       isUseInterpResolver = options.isUseInterpResolver;  
     end % if
@@ -75,6 +71,11 @@ function [ isInside ] = meshVolumeMapDivergentRays( mesh , fbvh , elementMap , x
   options.isInfiniteRay = false;
   options.isIncludeRayEnds = true;
 
+
+  % Permute coordinates so rays are cast along the z directrion.
+  objBBox = [ circshift( objBBox(1:3) , -dirShift ) ; circshift( objBBox(4:6) , -dirShift ) ];
+  idxBBox = [ circshift( idxBBox(1:3) , [ 0 , -dirShift ] ) , circshift( idxBBox(4:6) , [ 0 , -dirShift ] ) ];
+  
   % If using the resolver padding is needed to prevent interpolation algorithm 
   % in resolver becoming complex on computastional volume AABB faces.
   if( isUseInterpResolver )
@@ -99,52 +100,57 @@ function [ isInside ] = meshVolumeMapDivergentRays( mesh , fbvh , elementMap , x
   % List of unresolved cells.
   numUnresolvedCells = 0;
   unresolvedCells = {};
- 
-  % Corners of object AABB.
-  Pmin = [ objBBox(1) , objBBox(2) , objBBox(3) ];
-  Pmax = [ objBBox(4) , objBBox(5) , objBBox(6) ];
 
-  % Parameters for location of search origin.
-  lambda = [ 2 , 2 , 2 ; ... % Diagonal 'd'
-             3 , 2 , 2 ; ... % Diagonal 'e'
-             2 , 3 , 2 ];    % Diagonal 'f'
+  % Transverse coordinates of cell centres.
+  x = 0.5 * ( xLocal(1:end-1) + xLocal(2:end) );
+  y = 0.5 * ( yLocal(1:end-1) + yLocal(2:end) );
+  zCellCentres = 0.5 * ( zLocal(1:(end-1)) + zLocal(2:end) );
+  
+  % Create finite ray along midpoints of cells from front to back face of object AABB. 
+  %zOrigin = zLocal(1) - options.epsRayEnds;
+  %zDestination = zLocal(end) + options.epsRayEnds;
+  zOrigin = objBBox(3) - options.epsRayEnds;
+  zDestination = objBBox(6) + options.epsRayEnds;
+  zDir = zDestination - zOrigin;
 
-  % Set origin to point on diagonal outside AABB of group.
-  origin = Pmin + ( Pmax - Pmin ) * diag( lambda(diagonalNumber,1:3) );
-  fprintf( '    Ray origin: [%g,%g,%g]\n' , origin );
+  % Ray parameter at face centres.
+  tFaceCentres = ( zLocal - zOrigin ) / zDir;
+
+  % Ray parameter at cell centres.
+  tCellCentres = ( zCellCentres - zOrigin ) / zDir;
+
+  % Loop over all cell centres in x and y directions.
+  for j=1:numCells(2)-1
+    for i=1:numCells(1)-1
+    
+      % Permute coordinate to correct dimension for ray casting.
+      origin = circshift( [ x(i) , y(j) , zOrigin ] , [ 0 , dirShift ] );    
+      destination = circshift( [ x(i) , y(j) , zDestination ] , [ 0 , dirShift ] );
+      dir = destination - origin;
+      % Cast ray. Elements parallel to elements are discarded by meshIntersectFBVH but other types
+      % of singularity will still be present.
+      [ tIntersect , elementIdx , isIntersectEdge , isFrontFacing ] = meshIntersectFBVH( mesh , fbvh , elementMap , origin , dir , options );      
+      % If no intersections found move to next ray.
+      if( isempty( tIntersect ) )
+        continue;
+      end % if 
+      % Find number of intersections on each secondary grid egde (centred on face centres).
+      if( length( tFaceCentres ) > 1 )
+        [ numIntersections , ~ ] = hist( tIntersect , tFaceCentres );
+      else
+        numIntersections = length( tIntersect );
+      end % if
+      kIntersect = find( numIntersections );
+      % Find cell centres within required distance of each intersection. 
+      for idx=1:length(kIntersect)
+        kInside = find( ( zCellCentres > zLocal(kIntersect(idx)) - 0.5 * options.thickness ) & ( zCellCentres < zLocal(kIntersect(idx)) + 0.5 * options.thickness ) );
+        if( length( kInside ) < 2 )
+          kInside = [ kIntersect(idx) - 1 , kIntersect(idx) ];
+        end % if
+        % Assign insideness for cells along ray.
+        isInside(i,j,kInside) = true;
+      end %for
       
-  % Loop over cell centres.
-  for k=1:numCells(3)-1
-    for j=1:numCells(2)-1
-      for i=1:numCells(1)-1
-        % Coordinates of cell centre.
-        x = 0.5 * ( xLocal(i) + xLocal(i+1) );
-        y = 0.5 * ( yLocal(j) + yLocal(j+1) );
-        z = 0.5 * ( zLocal(k) + zLocal(k+1) );        
-        % Create finite ray from origin to cell centre.
-        dir = [ x , y , z ] - origin;
-        % Cast rays. Elements parallel to ray are discarded by meshIntersectFBVH but other types
-        % of singularity will still be present.
-        [ tIntersect , elementIdx , isIntersectEdge , isFrontFacing ] = meshIntersectFBVH( mesh , fbvh , elementMap , origin , dir , options );
-        % If no intersections found move to next ray.
-        if( isempty( tIntersect ) )
-          continue;
-        end % if
-        % Attempt to resolve ambiguites due to singularities in the intersections found.
-        [ tIntersect ,  elementIdx , isIntersectEdge  , isFrontFacing , tNonTravSing , parity ] = ...
-          meshResolveRayVolume( tIntersect , elementIdx , isIntersectEdge  , isFrontFacing , options );      
-        % Check for cell centre on surface of group element.
-        if( abs( tIntersect(end) - 1.0 ) < epsRayEnds )
-          % Cell centre is very close to an intersection point - set to default insideness value...
-          isInside(i,j,k) = isUnresolvedInside;
-          % ...and then mark it for resolving later.
-          numUnresolvedCells = numUnresolvedCells + 1
-          unresolvedCells{numUnresolvedCells} = [ i , j , k ];
-        else
-          % Assign insideness of cell based on parity count of the last intersection along the ray segment.
-          isInside(i,j,k) = parity(end);
-        end % if
-      end % for
     end % for
   end % for
 
@@ -165,5 +171,8 @@ function [ isInside ] = meshVolumeMapDivergentRays( mesh , fbvh , elementMap , x
     % [FIXME] Any way to remove expense of this operation? Use profiler to see if it is a significant hit.
     isInside = isInside(2:(numCells(1)),2:(numCells(2)),2:(numCells(3)));
   end % if
+  
+  % Permute coordinate axes back to required order.
+  isInside = permute( isInside , circshift( [ 1 , 2 , 3 ] , [ 0 , dirShift ] ) );
 
 end % function

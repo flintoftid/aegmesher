@@ -48,8 +48,10 @@ function [ mesh ] = meshSmesh2Unmesh( smesh )
 % Author: I. D. Flintoft
 % Date: 25/08/2014
 % Version 1.3.0
-% Refactored into higlhy vectoried code to improve scalability.
+% Refactored into highly vectoried code to improve scalability.
 
+% [FIXME] Does not work for non-elemental elements.
+    
   % Element types. 
   elementTypesData = meshElementTypes();
   
@@ -115,7 +117,12 @@ function [ mesh ] = meshSmesh2Unmesh( smesh )
   
   % Find number of elements in each group.
   for groupIdx=1:mesh.numGroups
-    numElementsInGroup(groupIdx) = size( smesh.groups{groupIdx} , 1 );
+    if( smesh.groupTypes( groupIdx ) ~= 4 )
+      numElementsInGroup(groupIdx) = size( smesh.groups{groupIdx} , 1 );
+    else
+      % [FIXME] Ignore AABB groups.
+      numElementsInGroup(groupIdx) = 0;    
+    end % if
   end % for
 
   % Initialise arrays.
@@ -139,6 +146,11 @@ function [ mesh ] = meshSmesh2Unmesh( smesh )
       smesh.groups{groupIdx} = floor( smesh.groups{groupIdx} );  
     end % if
 
+    % [FIXME] Ignore AABB groups.
+    if( smesh.groupTypes( groupIdx ) == 4 )  
+      continue;
+    end % if
+    
     % Find implicit flattened cell index of all entities belonging to current group.
     flatCellIdx = sub2ind( [ Nx , Ny , Nz ] , smesh.groups{groupIdx}(:,1) , smesh.groups{groupIdx}(:,2) , smesh.groups{groupIdx}(:,3) );
     thisNumElements = length( flatCellIdx );

@@ -1,6 +1,6 @@
 function [ optionValue ] = meshGetGroupOption( groupIdx , options , optionName )
 %
-% meshGetGroupOption - Grt value of single option for a mesh group.
+% meshGetGroupOption - Get value of single option for a mesh group.
 % 
 % [ optionValue ] = meshGetGroupOption( groupIdx , options , optionName )
 %
@@ -46,6 +46,7 @@ function [ optionValue ] = meshGetGroupOption( groupIdx , options , optionName )
         optionValue = getfield( options.default , optionName );
       else
         error( 'Invalid option %s' , optionName );
+      end % if
     end % if
   else
     error( 'Unknown group index %d' , groupIdx );

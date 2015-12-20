@@ -97,7 +97,7 @@ We welcome any contributions to the development of the mesher, including:
 
 * Improving the quality of the meshes generated and the general robustness of the mesher.
 
-* Speeding up the mesh mapping phase, maybe be reimplementing keys parts as low level code in
+* Speeding up the mesh mapping phase, maybe by reimplementing keys parts as low level code in
   another language.
   
 * Items in the to-do list in the file doc/[ToDo.txt][].

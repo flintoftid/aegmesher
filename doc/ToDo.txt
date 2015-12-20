@@ -19,6 +19,11 @@
 
 ### Review setting and use of all tolerances and improve user documentation of these
 
+The current method by which these are set is not scale invariant leading to unexpected
+default results and placing uneccessary burden on the user. Much more robust values can
+probably be determined by an initial analysis of the range of elements sizes in the 
+input mesh and cell sizes in the target structured mesh.
+
 Name: epsCoalesceLines
 Used in: meshCreateLines()
 Units: metres
@@ -28,7 +33,7 @@ Issues: Not transitive, not scale invariant
 Changes: Could it be set using the smallest mesh size *requested*, e.g.
          epsCoalesceLines = 1e-4 * minMeshSize;
          Since mesh lines not known at this stage need to know minimum from
-         constraints imposed.
+         constraints imposed?
          
 Name: epsCompVol
 Used in: meshCreateCubicMeshLines(), meshCreateNonUniformMeshLines() , meshCreateUniformMeshLines()
@@ -44,7 +49,7 @@ Used in: meshBBoxRayIntersection(), meshTriRayIntersection1(), meshTriRayInterse
 Units: normalised ray parameter
 Default: 1e-6
 Purpose: Inclusion/exlusion of intersections at rayEnds depending on value of isIncludeRayEnds 
-         Only important for divergent ray volume mapping when far end of ray is within the mapped volume.
+         Currently only important for divergent ray volume mapping when far end of ray is within the mapped volume.
 Issues: See (*) below
 Changes:  Make absolute, but determined from minimum mesh size in groups to be meshed.
           
@@ -54,7 +59,7 @@ Units: metres
 Default 1e-6 m
 Purpose: Used to offset ends of ray origin and end points to ensure ray covers the AABB
 Issues: Different use and units to above, not scale invariant. Value probably isn't
-        critical or really realted to other uses. 
+        critical or really related to other uses. 
 Changes: After change use same as above. 
              
 Name: epsRayEnds (3)             
@@ -87,7 +92,7 @@ Changes: The determinant is given by
                  
          where 
          
-         ||dir||      - is the length of an unnormalised finite ray ~ size of AABB
+         ||dir||      - is the length of a finite ray ~ size of AABB
          ||edge1/2||  - are element edge lengths - could be very small to significant 
                         proportion of object AABB.
          cos( alpha ) = cos( pi/2 - epsAngle ) ~ epsAngle
@@ -96,7 +101,8 @@ Changes: The determinant is given by
          
          abs( det ) ~ ||edge1|| ||edge2|| ||dir|| epsAngle
                     ~ maxElementSize^2 * sizeOfAABB * epsAngle
- 
+                    ~ minElementSize^2 * sizeOfAABB * epsAngle
+                    
          The RHS product could have a huge range so rigorously it seems like the most 
          robust method is to make epsParallelRay = epsAngle and calculate the norms: 
          
@@ -112,7 +118,6 @@ Changes: The determinant is given by
          abs( det ) > rownorm2( edge1 ) .* rownorm2( edge2 ) .* rownorm2( dir ) .* epsParallelRay
 
          *BUT* this still means we could miss an intersection at grazing angles. See (+) below.
-         
          
 Name: epsUniqueIntersection
 Used in: meshResolveRayVolume()
@@ -165,12 +170,14 @@ For triangles:
 
 http://jcgt.org/published/0002/01/05/paper.pdf  
 
-which uses an algorithm that gaurantees not to miss intersections - also 
+which uses an algorithm that guarantees not to miss intersections - also 
 with guarantees about hits on neighbouring triangles. It also makes some
 statements about parallel rays which could be significant. The parallel
-test uses and exact zero and claims intersections are guaranteed to be
+test uses an exact zero and claims intersections are guaranteed to be
 detected in neighbouring triangles. This has been implemented in 
-meshTriRayIntersection4() but not tested.
+meshTriRayIntersection4() but not tested. If may need support from 
+a matched ray-box intersection test to ensure the BVH partitioning is
+not confounded.
 
 Other refs:
 
@@ -186,11 +193,6 @@ http://geomalgorithms.com/a06-_intersect-2.html
 groupGroup stuff should always be optionally considered in all mesh operations.
 If it is not present ignore it. If present process consistently.
 Check all functions handle this correctly.
-
-### Warn about duplicate elements
-
-Identify functions which may generate duplicate elements. These can be a
-problem depending on the usage of the output. Maybe should issue warning.
 
 
 ## Mesh Line Generation
@@ -212,7 +214,7 @@ How to deal with weights and Dmin/Dmax or dmin/dmax to left/right?
     X = row vector etc
     Xuser = [ X , Xweight , Dmin , Dmax , dmin , dmax ];
 
-### Constraint point determintion from unstructured mesh node statistics
+### Constraint point determination from unstructured mesh node statistics
  
 Only valid if unstructured mesh node density is representative of spatial variation
 of surfaces.
@@ -252,16 +254,12 @@ New per group options: physicalType = 'MEDIUM' , 'SOURCE' , 'OBSERVER'
 How are they defined in the input mesh?
     
 * Observers: Normal group of elements - any dimensionality.
-
 * Sources: Normal group of elements - any dimensionality.
       
 How should they be mapped?
     
-* Observers: physicalType = 'OBSERVER'
-  Map as all nodes in group using float indices.
-
-* Sources: physicalType = 'SOURCE'
-  Map according to dimensionality as normal.
+* Observers: physicalType = 'OBSERVER'. Map as all nodes in group using float indices.
+* Sources: physicalType = 'SOURCE'. Map according to dimensionality as normal.
 
 This doesn't really change anything in the mapper!
     
@@ -282,7 +280,7 @@ Observers: nodes, lines planes, surfaces. volumes.
 
 In Vulture EX, PW, OP can only be defined for cuboid (possibly degenerate)
 shapes. In more complex cases may want to e.g define observation of current
-on curve surface. Related to issue of how to get outputs out and map back 
+on curved surface. Related to issue of how to get outputs out and map back 
 onto input mesh. Also should observers be nodal or use natural elements
 for output type? 
 
@@ -297,7 +295,7 @@ mapping. This is hard.
 
 ### Support other surface elements
 
-Michael has code to transform non triangular elements into triangles using the
+Michael has code to transform non-triangular elements into triangles using the
 MATAB Delauny function. Maybe offer this at higher level using function:
 
     mesh2 = meshTriangulate( mesh1 )
@@ -319,7 +317,7 @@ MATAB Delauny function. Maybe offer this at higher level using function:
       vertices = mesh.nodes';
     end
     
-eplaces all non-triangular surface elements with multiple triangles.
+replaces all non-triangular surface elements with multiple triangles.
 
 ### Add more sophisticated ideas from Michael's surface mapper into basic implementation.
 
@@ -348,7 +346,7 @@ eplaces all non-triangular surface elements with multiple triangles.
 * Only needs to support triangles - start from meshWriteSurf which 
   is very close to the required algorithm. 
 
-### Add function to imxport an STL format surface triangluation
+### Add function to import an STL format surface triangluation
 
     [ mesh ] = meshReadSTL( stlFileName )
 
@@ -374,12 +372,12 @@ eplaces all non-triangular surface elements with multiple triangles.
     meshWriteVulture( vultureFileName , mesh )
 
 * options.vulture.meshScaleFactor - scale structure on output.
-* Use maxFreq/minFreq to determine waveform parameters.
 * Use group precedence during export.
 * Consider best way to write out objects and combine with rest
   of mesh. Do we want to always write a full mesh or separate files
   (mb.mesh, tb.mesh,..) which can be combined by another function
   with material information to provide a complete mesh?
+* Use maxFreq/minFreq to determine waveform parameters.
 * Could generalise material database to return simple medium parameters 
   and Debye parameters that could be included in mesh. 
 
@@ -391,7 +389,10 @@ eplaces all non-triangular surface elements with multiple triangles.
 
     meshWriteHawk( hawkFileName , mesh )
 
-### Write AMELET-HDf exporter
+Straight-forward translation of Vulture exporter. Need to copw with fixed
+mesh origin.
+    
+### Write AMELET-HDF exporter
 
 Would be nice to export to AMELET-HDF but Octave has no generic
 HDF5 writing support - need tight control of dataset types and names

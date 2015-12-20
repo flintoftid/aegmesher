@@ -1,9 +1,9 @@
-function [ x , dopt ] = meshCreateNonUniformMeshLines( X , Xweight , dmin , dmax , dirChar , options )
+function [ x ] = meshCreateNonUniformMeshLines( X , Xweight , dmin , dmax , dirChar , options )
 %
 % meshCreateNonUniformMeshLines - Generate a set nonuniform mesh lines that optimally fit a
 %                                 set of constraint points.
 % 
-% [ x , dopt ] = meshCreateNonUniformMeshLines( X , Xweight , dmin , dmax , dirChar , options )
+% [ x ] = meshCreateNonUniformMeshLines( X , Xweight , dmin , dmax , dirChar , options )
 %
 % Inputs:
 %
@@ -29,7 +29,6 @@ function [ x , dopt ] = meshCreateNonUniformMeshLines( X , Xweight , dmin , dmax
 % Outputs:
 %
 % x()  - vector of mesh lines [m].
-% dopt - optimal mesh size [m].
 % 
 
 % 

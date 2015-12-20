@@ -136,13 +136,24 @@ function [ smesh ] = meshMapGroups( mesh , groupNamesToMap , lines , options )
     % Get this group's option structure.
     thisOptions = meshGetGroupOptions( thisGroupIdx , options );
 
-    if( strcmp( thisOptions.type , 'VOLUME' ) || strcmp( thisOptions.type , 'SURFACE' ) || strcmp( thisOptions.type , 'CLOSED_SURFACE' ) )
+    if( strcmp( thisOptions.type , 'VOLUME' ) || strcmp( thisOptions.type , 'SURFACE' ) || strcmp( thisOptions.type , 'CLOSED_SURFACE' ) || strcmp( thisOptions.type , 'THICK_SURFACE' ) )
       % Create BVH for group's elements.  
       [ fbvh , elementMap ] = meshBuildFBVH( mesh , { thisGroupName } , thisOptions );
       % Get AABB of group in physical units.
       objBBox = fbvh(1).bbox;
     else
       objBBox = meshGetGroupAABB( mesh , thisGroupIdx );  
+    end % if
+    
+    % For thick surfaces expand AABB to include thickness of group.
+    % Need cells inside thick surface to be included in ray-casting volume!
+    if( strcmp( thisOptions.type , 'THICK_SURFACE' ) )
+      objBBox(1) = objBBox(1) - thisOptions.thickness;  
+      objBBox(2) = objBBox(2) - thisOptions.thickness;  
+      objBBox(3) = objBBox(3) - thisOptions.thickness;  
+      objBBox(4) = objBBox(4) + thisOptions.thickness;  
+      objBBox(5) = objBBox(5) + thisOptions.thickness;  
+      objBBox(6) = objBBox(6) + thisOptions.thickness;  
     end % if
     
     fprintf( '  Group AABB: [%g,%g,%g,%g,%g,%g]\n' , objBBox );
@@ -257,6 +268,31 @@ function [ smesh ] = meshMapGroups( mesh , groupNamesToMap , lines , options )
         smesh.groupTypes(smesh.numGroups) = 2;
         smesh.groupNames{smesh.numGroups} = thisGroupName;
       end % if
+    case 'THICK_SURFACE'
+      fprintf( '  Group is a thick surface object\n' );
+      % Mesh group type must be a (closed) surface. 
+      if( mesh.groupTypes(thisGroupIdx) ~= 2 )
+        error( 'Cannot map group type with types other than 2 (surface) as a thick surface object' ,  mesh.groupTypes(groupIdx) );
+      end % if
+      % Check group maps to non-zero volume on structured mesh. 
+      if( idxBBox(4) <= idxBBox(1) || idxBBox(5) <= idxBBox(2) || idxBBox(6) <= idxBBox(3) )
+        % This should only happen if group AABB has zero volume.
+        fprintf( '  Group has no cells within computational volume - ignoring\n' )
+      else
+        % Map the group as a solid.
+        % Cells at imax, jmax, kmax will not be used for volumetric objects.
+        smesh.numGroups = smesh.numGroups + 1;
+        isInside = meshVolumeMapSurfaceGroup( mesh , fbvh , elementMap , lines , objBBox , idxBBox , thisOptions );
+        % Add to structured mesh.
+        flatIdx = find( isInside );
+        [ i , j , k ] = ind2sub( size( isInside ) , flatIdx );
+        smesh.groups{smesh.numGroups} = [ imin + i - 1 , jmin + j - 1 , kmin + k - 1 , ...
+          imin + i - 1 + bboxStencils(8,1) , jmin + j - 1 + bboxStencils(8,2) , kmin + k - 1 + bboxStencils(8,3) ];
+        clear isInside flatIdx i j k
+        % Relabel group as a volume group on the structured mesh.
+        smesh.groupTypes(smesh.numGroups) = 3;
+        smesh.groupNames{smesh.numGroups} = thisGroupName;
+      end % if
     case 'LINE'
       fprintf( '  Group is a line object\n' );
       smesh.numGroups = smesh.numGroups + 1;
@@ -287,7 +323,7 @@ function [ smesh ] = meshMapGroups( mesh , groupNamesToMap , lines , options )
       smesh.groupTypes(smesh.numGroups) = 1;
       smesh.groupNames{smesh.numGroups} = thisGroupName;
     case 'POINT'
-      fprintf( '  Group is mapped as a point object\n' );
+      fprintf( '  Group is mapped as a node object\n' );
       smesh.numGroups = smesh.numGroups + 1;
       % Map the all the nodes in the group regardless of type.
       smesh.groups{smesh.numGroups} = meshNodeMapGroup( mesh , thisGroupIdx , lines , objBBox , idxBBox , thisOptions ); 
@@ -295,7 +331,14 @@ function [ smesh ] = meshMapGroups( mesh , groupNamesToMap , lines , options )
       smesh.groupTypes(smesh.numGroups) = 0;
       smesh.groupNames{smesh.numGroups} = thisGroupName;
     case 'BBOX'
-      fprintf( '  Not mapping BBOX type group\n' );
+      fprintf( '  Group is mapped as a AABB object\n' );
+      smesh.numGroups = smesh.numGroups + 1;
+      % [FIXME] This is not accurate enough. Probably need to map
+      % properly depending on type.
+      smesh.groups{smesh.numGroups} = idxBBox; 
+      % Relabel group as a AABB group on the structured mesh.
+      smesh.groupTypes(smesh.numGroups) = 4;
+      smesh.groupNames{smesh.numGroups} = thisGroupName;       
     otherwise
       error( 'Invalid object type %s' , thisOptions.type );
     end % switch

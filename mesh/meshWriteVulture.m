@@ -51,22 +51,27 @@ function meshWriteVulture( mshFileName , smesh , options )
 % Note - mesh line indices have to be reduced by 1 since Vulture uses zero 
 % based arrays!
 
-  % Directives for groupt types.
+  % Directives for group types.
   directiveString = { 'TW' , 'TB' , 'MB' };
   
   % Mesh lines.
-  x = smesh.lines.x;
-  y = smesh.lines.y;
-  z = smesh.lines.z;
+  x = options.vulture.scaleFactor .* smesh.lines.x;
+  y = options.vulture.scaleFactor .* smesh.lines.y;
+  z = options.vulture.scaleFactor .* smesh.lines.z;
 
-  if( options.vulture.useMaterialNames )
-    names = {};
-    for groupIdx=1:smesh.numGroups
-      names{groupIdx} = meshGetGroupOption( groupIdx , options , 'materialName' );
-    end % for
-  else
-    names = smesh.groupNames;
-  end % if
+  % Get material names.
+  for groupIdx=1:smesh.numGroups
+    if( strcmp( options.group(groupIdx).physicalType , 'MATERIAL' ) ) 
+      matNames{groupIdx} = meshGetGroupOption( groupIdx , options , 'materialName' );    
+    else
+      matNames{groupIdx} = 'NA';      
+    end % if
+    if( options.vulture.useMaterialNames )
+      names{groupIdx} = matNames{groupIdx};
+    else
+      names{groupIdx} = smesh.groupNames{groupIdx};
+    end % if
+  end % for
 
   % Sanitise names. 
   %materialName = cell2mat( smesh.groupNames(1) );
@@ -86,82 +91,97 @@ function meshWriteVulture( mshFileName , smesh , options )
   fprintf( fout , 'DM %3d %3d %3d\n', length( x ) - 1 , length( y ) - 1 , length( z ) - 1 );
   fprintf( fout , 'GS\n' );
   fprintf( fout , '#\n# Section 2\n#\n' );
-  % [FIXME] Use fmin/fmax to determine differentiated Gaussian parameters.
+  % [FIXME] Use fmin/fmax to determine modulated Gaussian parameters.
   fprintf( fout , 'WF wf1 GAUSSIAN_PULSE\n' );
-  % [FIXME] Better way to put in dummy source?
-  fprintf( fout , 'EX  0 2 1 1 0 2 source EZ wf1 1.0\n' );
 
-  % Write out media types. 
+  % Write out sources.
   for groupIdx=1:smesh.numGroups
-    switch( smesh.groupTypes(groupIdx) )
-    case 3
-      fprintf( fout , 'MT %s PEC\n', names{groupIdx} );
-    case 2
-      fprintf( fout , 'BT %s PEC\n', names{groupIdx} );
-    case 1
-      fprintf( fout , 'WT %s PEC\n', names{groupIdx} );
-    otherwise
-      ;
-    end % switch
+    if( strcmp( options.group(groupIdx).physicalType , 'SOURCE' ) )
+      bboxes = smesh.groups{groupIdx};
+      for bboxIdx=1:size( bboxes , 1 )  
+        fprintf( fout , 'EX %3d %3d %3d %3d %3d %3d %s\n' , ...
+                 bboxes(bboxIdx,1) - 1 , bboxes(bboxIdx,4) - 1 , ...
+                 bboxes(bboxIdx,2) - 1 , bboxes(bboxIdx,5) - 1 , ...
+                 bboxes(bboxIdx,3) - 1 , bboxes(bboxIdx,6) - 1 , ...
+                 names{groupIdx} );
+      end % for
+    end % if
   end % for
 
-  % Write out physical model selectors.
+  % Write out observers.
   for groupIdx=1:smesh.numGroups
-    groupType = smesh.groupTypes(groupIdx);
-    if( groupType == 0 )
-      continue;
+    if( strcmp( options.group(groupIdx).physicalType , 'OBSERVER' ) )
+      bboxes = smesh.groups{groupIdx};
+      for bboxIdx=1:size( bboxes , 1 )  
+        fprintf( fout , 'OP %3d %3d %3d %3d %3d %3d %s\n' , ...
+                 bboxes(bboxIdx,1) - 1 , bboxes(bboxIdx,4) - 1 , ...
+                 bboxes(bboxIdx,2) - 1 , bboxes(bboxIdx,5) - 1 , ...
+                 bboxes(bboxIdx,3) - 1 , bboxes(bboxIdx,6) - 1 , ...
+                 names{groupIdx} );
+      end % for
     end % if
-    bboxes = smesh.groups{groupIdx};
-    for bboxIdx=1:size( bboxes , 1 )  
-      fprintf( fout , '%s %3d %3d %3d %3d %3d %3d %s\n' , directiveString{groupType} , ...
-               bboxes(bboxIdx,1) - 1 , bboxes(bboxIdx,4) - 1 , ...
-               bboxes(bboxIdx,2) - 1 , bboxes(bboxIdx,5) - 1 , ...
-               bboxes(bboxIdx,3) - 1 , bboxes(bboxIdx,6) - 1 , ...
-               names{groupIdx} );    
-    end % for bboxIdx
-  end % for groupIdx
+  end % for
 
-  % [FIXME] Add dummy observber?
-  % fprintf( fout , 'OP  0 2 1 1 0 2 output1 .....\n' );
-%    for groupIdx=1:smesh.numGroups
-%      groupType = smesh.groupTypes(groupIdx);
-%      if( groupType ~= 0 )
-%        continue;
-%      end % if
-%      bboxes = smesh.groups{groupIdx};
-%      for bboxIdx=1:size( bboxes , 1 )  
-%        fprintf( fout , 'OP %3g %3g %3g %3g %3g %3g %s TDOM_ASCII\n' , ...
-%                 bboxes(bboxIdx,1) - 1 , bboxes(bboxIdx,4) - 1 , ...
-%                 bboxes(bboxIdx,2) - 1 , bboxes(bboxIdx,5) - 1 , ...
-%                 bboxes(bboxIdx,3) - 1 , bboxes(bboxIdx,6) - 1 , ...
-%                 names{groupIdx} );    
-%      end % for bboxIdx
-%    end % for groupIdx
+  % Write out material types. 
+  for groupIdx=1:smesh.numGroups
+    if( strcmp( options.group(groupIdx).physicalType , 'MATERIAL' ) )
+      switch( smesh.groupTypes(groupIdx) )
+      case 3
+        fprintf( fout , 'MT %s %s\n', names{groupIdx} , matNames{groupIdx} );
+      case 2
+        fprintf( fout , 'BT %s %s\n', names{groupIdx} , matNames{groupIdx} );
+      case 1
+        fprintf( fout , 'WT %s %s\n', names{groupIdx} , matNames{groupIdx} );
+      otherwise
+        ;
+      end % switch
+    end % if
+  end % for
+
+  % Write out material selectors.
+  for groupIdx=1:smesh.numGroups
+    if( strcmp( options.group(groupIdx).physicalType , 'MATERIAL' ) )
+      groupType = smesh.groupTypes(groupIdx);
+      if( groupType == 0 )
+        continue;
+      end % if
+      bboxes = smesh.groups{groupIdx};
+      for bboxIdx=1:size( bboxes , 1 )  
+        fprintf( fout , '%s %3d %3d %3d %3d %3d %3d %s\n' , directiveString{groupType} , ...
+                 bboxes(bboxIdx,1) - 1 , bboxes(bboxIdx,4) - 1 , ...
+                 bboxes(bboxIdx,2) - 1 , bboxes(bboxIdx,5) - 1 , ...
+                 bboxes(bboxIdx,3) - 1 , bboxes(bboxIdx,6) - 1 , ...
+                 names{groupIdx} );    
+      end % for bboxIdx
+    end % if
+  end % for groupIdx
   
   fprintf( fout , 'GE\n' );
   
   % [FIXME] Estimate minimium number of time steps from mesh dimensions and waveform.
   fprintf( fout , '#\n# Section 3\n#\n' );
-  fprintf( fout , 'NT 100\n' );
+  fprintf( fout , 'NT 10000\n' );
 
   % If we don't use XL/YL/ZL mesh will start at (0,0,0) and outputs
-  % mesh/data may not match input mesh.
+  % mesh/data may not match input mesh. Need MO card support in vulture.
   %switch( options.mesh.meshType )
   %case 'CUBIC'
   %  d = mean( [ diff( x ) , diff( y ) , diff( z ) ] );
-  %  fprintf( fout , 'MS %f %f %f\n', d );
+  %  fprintf( fout , 'MS %g %g %g\n', d );
+  %  fprintf( fout , 'MO %g %g %g\n', x(1) , y(1) , z(1) );
   %case 'UNIFORM'
   %  dx = mean( diff( x ) );
   %  dy = mean( diff( y ) );
   %  dz = mean( diff( z ) );
-  %  fprintf( fout , 'MS %f %f %f\n', dx , dy , dz );
+  %  fprintf( fout , 'MS %g %g %g\n', dx , dy , dz );
+  %  fprintf( fout , 'MO %g %g %g\n', x(1) , y(1) , z(1) );
   %case 'NONUNIFORM'
     fprintf( fout , 'XL\n' );
-    fprintf( fout , '%f\n', x );
+    fprintf( fout , '%g\n', x );
     fprintf( fout , 'YL\n' );
-    fprintf( fout , '%f\n', y );
+    fprintf( fout , '%g\n', y );
     fprintf( fout , 'ZL\n' );
-    fprintf( fout , '%f\n', z );  
+    fprintf( fout , '%g\n', z ); 
   %end % switch
 
   % Close vulture mesh file.

@@ -238,7 +238,7 @@ function [ lines ] = meshCreateLines( mesh , groupNamesToAnalyse , options )
       dmax = thisOptions.dmax;
     end % if
 
-    % If this is the computation volume group keep its AABB and mesh size but don't
+    % If this is the computational volume group keep its AABB and mesh size but don't
     % add to the constraints yet.
     if( strcmp( thisGroupName , compVolGroupName ) )
       compVolAABB = thisAABB;
@@ -298,12 +298,13 @@ function [ lines ] = meshCreateLines( mesh , groupNamesToAnalyse , options )
   end % if
  
   % Check computational volume has finite volume. 
+  % [FIXME] Could we relax this to allow 2D meshing?
   if( compVolAABB(4) <= compVolAABB(1) || compVolAABB(5) <= compVolAABB(2) || compVolAABB(6) <= compVolAABB(3) )
     error( 'Computational volume has zero or negative volume!' );
   end % if
 
-  % Truncate constraints AABBs to computational volume
-  % and delete constraint AABBs wholy outside the computational volume.
+  % Truncate constraint AABBs to computational volume
+  % and delete constraint AABBs wholly outside the computational volume.
   idx = find( Xconstraints(:,1) < compVolAABB(1) );
   Xconstraints(idx,1) = compVolAABB(1);
   idx = find( Xconstraints(:,2) > compVolAABB(4) );
@@ -324,9 +325,9 @@ function [ lines ] = meshCreateLines( mesh , groupNamesToAnalyse , options )
   Zconstraints(idx,:) = [];  
 
   % Add the computational volume to the constraints.
-  Xconstraints = [ compVolAABB(1) , compVolAABB(4) , compVol_dmin , compVol_dmax , 1 ];
-  Yconstraints = [ compVolAABB(2) , compVolAABB(5) , compVol_dmin , compVol_dmax , 1 ];
-  Zconstraints = [ compVolAABB(3) , compVolAABB(6) , compVol_dmin , compVol_dmax , 1 ];   
+  Xconstraints = [ Xconstraints ; compVolAABB(1) , compVolAABB(4) , compVol_dmin , compVol_dmax , 1 ];
+  Yconstraints = [ Yconstraints ; compVolAABB(2) , compVolAABB(5) , compVol_dmin , compVol_dmax , 1 ];
+  Zconstraints = [ Zconstraints ; compVolAABB(3) , compVolAABB(6) , compVol_dmin , compVol_dmax , 1 ];   
 
   % Process constraints in each direction.
   [ X , Xweight , dx_min , dx_max ] = processConstraints( Xconstraints , options.mesh.epsCoalesceLines );

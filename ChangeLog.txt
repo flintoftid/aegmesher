@@ -1,3 +1,144 @@
+2014-09-18  Ian David Flintoft  <ian.flintoft@york.ac.uk>
+
+	* doc/Done.txt, doc/ToDo.txt, doc/UserManual.txt,
+	mesh/meshCreateLines.m, mesh/meshMapGroups.m,
+	mesh/private/meshBBoxRayIntersection.m,
+	mesh/private/meshBBoxRayIntersection2.m,
+	mesh/private/meshLineMapGroup.m, mesh/private/meshNodeMapGroup.m,
+	mesh/private/meshVolumeMapParallelRays.m:
+	user: Ian David Flintoft <ian.flintoft@york.ac.uk> branch 'default'
+
+	changed doc/Done.txt changed doc/ToDo.txt changed doc/UserManual.txt
+
+	 Updates.
+
+	changed mesh/meshMapGroups.m
+
+	 Add missing newlines in output.
+
+	changed mesh/meshCreateLines.m changed
+	mesh/private/meshBBoxRayIntersection.m added
+	mesh/private/meshBBoxRayIntersection2.m changed
+	mesh/private/meshLineMapGroup.m changed
+	mesh/private/meshNodeMapGroup.m changed
+	mesh/private/meshVolumeMapParallelRays.m
+
+	 Fixes for case where computational volume truncates objects.
+	[f0779d6c2c0f] [tip]
+
+2014-09-14  Ian David Flintoft  <ian.flintoft@york.ac.uk>
+
+	* CMakeLists.txt, doc/ToDo.txt, mesh/meshCylinders.m,
+	mesh/meshSpheres.m, mesh/private/meshIntersectFBVH.m,
+	mesh/private/meshTriRayIntersection1.m,
+	mesh/private/meshTriRayIntersection2.m,
+	mesh/private/meshTriRayIntersection3.m,
+	mesh/private/meshTriRayIntersection4.m,
+	mesh/private/meshVolumeMapParallelRays.m:
+	user: Ian David Flintoft <ian.flintoft@york.ac.uk> branch 'default'
+
+	changed CMakeLists.txt
+
+	 Fix bug in install directive.
+
+	changed doc/ToDo.txt
+
+	 Update with more information on tolerances.
+
+	added mesh/private/meshTriRayIntersection4.m
+
+	 New watertight algoirthm - not active.
+
+	changed mesh/meshCylinders.m changed mesh/meshSpheres.m
+
+	 Fix bug in setting groups.
+
+	changed mesh/private/meshTriRayIntersection1.m changed
+	mesh/private/meshTriRayIntersection2.m changed
+	mesh/private/meshTriRayIntersection3.m
+
+	 Refactoring and consistency edits.
+
+	changed mesh/private/meshVolumeMapParallelRays.m changed
+	mesh/private/meshIntersectFBVH.m
+
+	 Whitespace only.
+	[a6a5d67f2046]
+
+2014-09-11  Ian David Flintoft  <ian.flintoft@york.ac.uk>
+
+	* Licence.txt, ReadMe.txt:
+	user: Ian David Flintoft <ian.flintoft@york.ac.uk> branch 'default'
+
+	changed Licence.txt changed ReadMe.txt
+
+	 Add link to licence file.
+	[07c1c4b9dcd5]
+
+	* ReadMe.txt, doc/Bugs.txt, doc/Done.txt,
+	doc/ImplementationReport.txt, doc/ToDo.txt,
+	mesh/meshPlaneLineIntersection.m, mesh/meshTwoLinesMinSep.m,
+	mesh/private/meshTriRayIntersection1.m,
+	mesh/private/meshVolumeMapParallelRays.m:
+	user: Ian David Flintoft <ian.flintoft@york.ac.uk> branch 'default'
+
+	changed ReadMe.txt changed doc/Bugs.txt changed doc/Done.txt changed
+	doc/ImplementationReport.txt changed doc/ToDo.txt
+
+	 Completed merging wiki and source package docs.
+
+	changed mesh/meshPlaneLineIntersection.m
+
+	 Whitespace.
+
+	changed mesh/meshTwoLinesMinSep.m
+
+	 Return normalised parameters for consistency with other functions.
+
+	changed mesh/private/meshTriRayIntersection1.m
+
+	 Add information and (commented out) code ready for scalable
+	tolerance update.
+
+	changed mesh/private/meshVolumeMapParallelRays.m
+
+	 Add missing ;
+	[c09398b8ed6f]
+
+2014-09-10  Ian David Flintoft  <ian.flintoft@york.ac.uk>
+
+	* mesh/meshReadAmelet.m, mesh/meshReadGmsh.m,
+	mesh/private/meshSurfaceMapParallelRays.m:
+	user: Ian David Flintoft <ian.flintoft@york.ac.uk> branch 'default'
+
+	changed mesh/meshReadAmelet.m changed mesh/meshReadGmsh.m
+
+	 Use cputime for timing at low levels since tic/tic not reentrant!
+
+	changed mesh/private/meshSurfaceMapParallelRays.m
+
+	 Add missing ;
+	[58bf86290a97]
+
+	* ChangeLog.txt, Install.txt, ReadMe.txt, doc/Bugs.txt, doc/Done.txt,
+	doc/ToDo.txt, tests/CMakeLists.txt, tests/Summary/CMakeLists.txt,
+	tests/TimeIntersections/CMakeLists.txt, tutorial/tutorial.md,
+	tutorial/tutorial.txt:
+	user: Ian David Flintoft <ian.flintoft@york.ac.uk> branch 'default'
+
+	added doc/Done.txt added tutorial/tutorial.txt changed ChangeLog.txt
+	changed Install.txt changed ReadMe.txt changed doc/Bugs.txt changed
+	doc/ToDo.txt removed tutorial/tutorial.md
+
+	 All docs use markdown, but suffix .txt in source code.
+
+	changed tests/CMakeLists.txt changed tests/Summary/CMakeLists.txt
+	changed tests/TimeIntersections/CMakeLists.txt
+
+	 Add exit to end of MEXEC strings to force MATLAB to quit after eact
+	test.
+	[fa6f8df255e9]
+
 2014-09-09  Ian David Flintoft  <ian.flintoft@york.ac.uk>
 
 	* Install.txt, ReadMe.txt, doc/ToDo.txt, doc/UserManual.txt,
@@ -25,7 +166,7 @@
 	changed doc/UserManual.txt
 
 	 Ship wiki version.
-	[286af153d1de] [tip]
+	[286af153d1de]
 
 2014-09-05  Ian David Flintoft  <ian.flintoft@york.ac.uk>
 

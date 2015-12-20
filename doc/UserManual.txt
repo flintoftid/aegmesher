@@ -440,7 +440,9 @@ options.group(groupIdx).<optionName>
 
 Name                  | Type    | Default     | Units   | Range
 :---------------------|--------:|:-----------:|:-------:|:--------------------------------------------------------------
-type                  | string  | 'VOLUME'    | n/a     | 'VOLUME', 'SURFACE', 'CLOSED_SURFACE' , 'WIRE', 'BBOX', 'NODE' 
+type                  | string  | 'VOLUME'    | n/a     | 'VOLUME', 'SURFACE', 'CLOSED_SURFACE' , 'THICK_SURFACE' , 'WIRE', 'BBOX', 'NODE' 
+physicalType          | string  | 'MATERIAL'  | n/a     | 'MATERIAL', 'SOURCE', 'OBSERVER' 
+thickness             | real    | 0.0         | m       | >=0
 precedence            | integer | 1           | n/a     | >=0
 rayDirections         | string  | 'xyz'       | n/a     | 'x', 'y', 'z', 'd', 'e', 'f'
 reduceMethod          | string  | 'CONCENSUS' | n/a     | 'CONCENSUS', 'MAJORITY', 'DICTATOR'
@@ -487,6 +489,22 @@ Notes:
    to meshing artefacts than the general surface algorithm.
 2. Bounding boxes are used for defining the computational volume in 
    the input mesh and can be used to define source plane, observers volumes etc.
+
+   
+#### physicalType
+   
+Physical type of the mapped object in the structured mesh. Currently not used by the mapper
+but available to mesh exporters.
+
+physicalType     | group type       | Description of mapped group 
+:----------------|:-----------------|:-----------------------------------------------
+'MATERIAL'       | 1, 2 or 3        | a material object
+'SOURCE'         | 1, 2 or 3        | an electromagnetic source
+'OBSERVER'       | 0                | a set of observation points
+
+#### thickness
+
+For volume mapping of surface groups this option defines the thickness of the surface in metres.
 
 #### precedence
 
@@ -615,13 +633,19 @@ options.vulture.<optionName>
 
 Name             | Type    | Default | Units | Range
 :----------------|: ------:|:-------:|:-----:|:-----------
-useMaterialNames | boolean | true    | n/a   | true, false
+useMaterialNames | boolean | false   | n/a   | true, false
+scaleFactor      | real    | 1.0     | n/a   | > 0.0
 
 #### useMaterialNames
 
 If true the material name is used to tag the groups elements
 in the Vulture mesh, otherwise the group name is used.
- 
+
+#### scaleFactor
+
+Apply scale factor to mesh lines before exporting into Vulture
+mesh file.
+
 # Testing
 
   meshTestCreateLines()
@@ -725,8 +749,9 @@ Group type number | Type of elements
 1                 | linear
 2                 | surface
 3                 | volume
+4                 | AABB
 
-
+Group type 4 provides special support for AABBs.
 
 [Gmsh]: http://geuz.org/gmsh
 [AMELET-HDF]: https://code.google.com/p/amelet-hdf
