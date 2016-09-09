@@ -8,6 +8,11 @@ cuboid meshes. It was primarily developed in the [Department of Electronics][] a
 [University of York][] for generating meshes for finite-difference time-domain 
 ([FDTD][]) and similar electromagnetic solvers.
 
+- - - -
+*Note: The non-uniform mesh line generation presented in the IEEE Antennas and Propagation 
+Magazine articel [10.1109/MAP.2016.2541606] is not yet fully integrated and is currently disabled.
+- - - -
+
 ## Code Features
 
 The mesh generator takes a description of a physical structure in the form of an 
@@ -20,7 +25,7 @@ define point-like, linear, surface or volumetric objects.
 
 The software is script-driven using the GNU [Octave][] language which allows it to be
 easily extended and combined with other phases of an overall simulation work-flow. 
-The meshing  is performed in two stages:
+The meshing is performed in two stages:
 
 1. The input unstructured mesh is first analysed together with the user provided options and 
    a set of mesh lines generated that optimally satisfy the meshing constraints. The key 
@@ -64,6 +69,9 @@ The best place to start after installing the software is with the detailed [tuto
 tutorial directory of the software package.
 
 There is also a draft user manual in the file doc/[UserManual.txt][].
+
+Details of the mesher algorithms, particularly the non-uniform mesh line generation can be found
+in the article [10.1109/MAP.2016.2541606].
 
 ## Bugs and support
 
@@ -162,6 +170,8 @@ Many thanks to the [Gmsh][] developers for creating an excellent [Open Source][]
 [CONCEPT-II]: http://www.tet.tuhh.de/concept/?lang=en
 [Open Source]: http://opensource.org
 [Erasmus Programme]: http://en.wikipedia.org/wiki/Erasmus_Programme
+[10.1109/MAP.2016.2541606]: http://dx.doi.org/10.1109/MAP.2016.2541606
+[zip file]: mfiles_nonuniform.zip
 
 [Install.txt]: Install.md
 [tutorial]: tutorial.md

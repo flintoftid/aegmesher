@@ -97,10 +97,10 @@ function [ lines ] = meshCreateLines( mesh , groupNamesToAnalyse , options )
     %
     % uniqX()   - real(m) ordered vector of constraint points.
     % Xweight() - real(m) vector of weights for each constraint point.
-    % dx_min()  - real(m-1) vector of minimim mesh sizes.
-    %                       dx_min(i) applies between points uniqX(i) and uniqX(i+1).   
+    % dx_min()  - real(m-1) vector of minimum mesh sizes.
+    %                       dx_min(i) applies between points X(i) and X(i+1).   
     % dx_max()  - real(m-1) vector of maximum mesh sizes.
-    %                       dx_max(i) applies between points uniqX(i) and uniqX(i+1).
+    %                       dx_max(i) applies between points X(i) and X(i+1).
     % 
 
     numConstraints = size( constraints , 1 );
@@ -361,10 +361,14 @@ function [ lines ] = meshCreateLines( mesh , groupNamesToAnalyse , options )
     end % if
   case 'NONUNIFORM'
     fprintf( 'Finding NONUNIFORM mesh with [%d,%d,%d] constraint points\n' , length( X ) , length( Y ) , length( Z ) );
+    fprintf( 'Nonuniform mesh line creation is currently disabled due to implementation issues.' );
     error( 'Unsupported mesh type %s' , options.mesh.meshType );
     %[ lines.x ] = meshCreateNonUniformMeshLines( X , Xweight , dx_min , dx_max , 'x' , options.mesh );
     %[ lines.y ] = meshCreateNonUniformMeshLines( Y , Yweight , dy_min , dy_max , 'y' , options.mesh );
     %[ lines.z ] = meshCreateNonUniformMeshLines( Z , Zweight , dz_min , dz_max , 'z' , options.mesh );
+    %[ x ] = meshCreateNonUniformMeshLinesMB( Xconstraints([1,2,4],:) , options.mesh.maxRatio , compVol_dmin , compVol_dmax , 'x' );
+    %[ y ] = meshCreateNonUniformMeshLinesMB( Yconstraints([1,2,4],:) , options.mesh.maxRatio , compVol_dmin , compVol_dmax , 'y' );    
+    %[ z ] = meshCreateNonUniformMeshLinesMB( Zconstraints([1,2,4],:) , options.mesh.maxRatio , compVol_dmin , compVol_dmax , 'z' );
     % Report and check mesh quality factors.
   otherwise
     error( 'Invalid mesh type %s' , options.mesh.meshType );

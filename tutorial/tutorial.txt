@@ -92,7 +92,7 @@ drop-down menu. This colours all elements belonging to the same physical
 group in the mesh the same colour. You should have something that looks 
 like Figure 2.
 
-![Figure 2: Unstructured mesh of the test object viewed in Gmsh][Figure2]
+![Figure 2: Unstructured mesh of the test object viewed in Gmsh][graph]
 
 To select and deselect different groups, from the top menu bar choose
 "Tools" -> "Visibility" and in the "List Browser" Tab you can select

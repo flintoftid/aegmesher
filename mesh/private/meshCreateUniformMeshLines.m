@@ -14,7 +14,7 @@ function [ x , dopt ] = meshCreateUniformMeshLines( X , Xweight , dmin , dmax , 
 % dirChar   - char, direction: 'x', 'y' or 'z'.
 % options   - structure containing options:
 % 
-%             .lineAlgorithm  - algorithm for mesh-line genaration:
+%             .lineAlgorithm  - algorithm for mesh-line generation:
 %                               'OPTIM2' - 2 stage optimsation. 
 %                               'OPTIM1' - 1 stage optmisation.
 %             .costAlgorithm  - algorithm for cost function for uniform/cubic mesh line genaration:
@@ -25,6 +25,7 @@ function [ x , dopt ] = meshCreateUniformMeshLines( X , Xweight , dmin , dmax , 
 %             .maxOptimTime   - real, maximum optimisation time [s].
 %             .maxOptimEvals  - integer, maximum number of cost function evaluations.
 %             .costFuncTol    - real, stopping value for cost function.
+%             .epsCompVol     - real, tolerance of computation volume fitting.
 %
 % Outputs:
 %
@@ -295,7 +296,7 @@ function [ x , dopt ] = meshCreateUniformMeshLines( X , Xweight , dmin , dmax , 
     ub = [ dmax , x0max ];
 
     % Objective function and initial feasible point.
-    objFcn = @(p) objFcnAll( p , X , Xweight , options.costAlgorithm , false );
+    objFcn=@(p) objFcnAll( p , X , Xweight , options.costAlgorithm , false );
     p0 = [ 0.5 * ( dmin + dmax ) , 0.5 * ( x0min + x0max ) ];
 
     % Perform optimisation.
@@ -314,7 +315,7 @@ function [ x , dopt ] = meshCreateUniformMeshLines( X , Xweight , dmin , dmax , 
         %nlopt.verbose = 1;
         [ popt , fval , retcode ] = nlopt_optimize( nlopt , p0 );
       else
-        [ popt , fval , exitflag ] = sqp( p0 , objFun , [] , [] , lb , ub , options.maxOptimEvals , options.costFuncTol );
+        [ popt , fval , exitflag ] = sqp( p0 , objFcn , [] , [] , lb , ub , options.maxOptimEvals , options.costFuncTol );
       end %if
     else
       optFmincon = optimset( 'Algorithm' , 'sqp' , 'Display' , 'iter' );
