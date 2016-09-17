@@ -1,5 +1,7 @@
 ![](https://bytebucket.org/uoyaeg/aegmesher/wiki/Blade1.jpg "AEG Blade Antenna")
 
+[TOC]
+
 # AEG Mesher: An Open Source Structured Mesh Generator for FDTD Simulations
 
 The Applied Electromagnetics Group ([AEG][]) mesh generator, *aegmesher*, is an 
@@ -10,8 +12,8 @@ time-domain ([FDTD][]) and similar electromagnetic solvers.
 
 - - - -
 **Note**: The non-uniform mesh line generation presented in the IEEE Antennas 
-and Propagation Magazine article is not yet fully integrated and is currently 
-disabled.
+and Propagation Magazine article ([Berens2016]) is not yet fully integrated and 
+is currently disabled. See doc/[ToDo.md][] for details.
 - - - -
 
 ## Code Features
@@ -74,7 +76,7 @@ systems.
 Installation instructions are contained in the file [Install.md][] in the 
 source distribution. The best place to start after installing the software is 
 with the detailed  example in the tutorial directory of the software 
-package: [tutorIAL.MD][]. There is also a user manual in the file 
+package: tutorial/[tutorial.md][]. There is also a user manual in the file 
 doc/[UserManual.md][].
 
 Details of the mesher algorithms, particularly the non-uniform mesh line 
@@ -162,9 +164,9 @@ generator.
 automatic non-uniform mesh generation for FDTD simulation”, IEEE Antennas and 
 Propagation Magazine, vol. 58, no. 3, pp. 45-55, June 2016.
 
-[Marvin2013b]:
+[Marvin2013b]: http://incompliancemag.com/article/a-wide-band-hybrid-antenna-for-use-in-reverberation-chambers
 
-([Marvin2013]) A. C. Marvin, L. Dawson, J. K. A. Everard, J. F. Dawson, G. C. R. 
+([Marvin2013b]) A. C. Marvin, L. Dawson, J. K. A. Everard, J. F. Dawson, G. C. R. 
 Melia, I. D. Flintoft and G. Esposito, “A wide-band hybrid antenna for use in 
 reverberation chambers”, In Compliance Magazine, pp. 44-50, December 2013, 
 
@@ -177,7 +179,7 @@ EMC, Brugge, Belgium, 2-6 September 2013, pp. 520-525.
 
 [Marvin2013]: http://dx.doi.org/10.1109/ISEMC.2013.6670413
 
-([Marvin2913]) A. C. Marvin, L. Dawson, J. K. A. Everard, J. F. Dawson, G. C. R. 
+([Marvin2013]) A. C. Marvin, L. Dawson, J. K. A. Everard, J. F. Dawson, G. C. R. 
 Melia, I. D. Flintoft and G. Esposito, “A wide-band hybrid antenna for use in 
 reverberation chambers”, 2013 IEEE International Symposium on Electromagnetic 
 Compatibility, Denver, Colorado, 5-9 August, 2013, pp. 222-226.
@@ -187,6 +189,7 @@ Compatibility, Denver, Colorado, 5-9 August, 2013, pp. 222-226.
 * Robert Schneiders' [list of free and commercial mesh generation software](http://www.robertschneiders.de/meshgeneration//software.html).
 
 * Matthijs Sypkens Smit's [list of free/open mesh generation software](http://graphics.tudelft.nl/~matthijss/oss_meshing_software.html)
+
 
 
 [Dr Ian Flintoft]: http://www.elec.york.ac.uk/staff/idf1.html
@@ -209,11 +212,9 @@ Compatibility, Denver, Colorado, 5-9 August, 2013, pp. 222-226.
 [CONCEPT-II]: http://www.tet.tuhh.de/concept/?lang=en
 [Open Source]: http://opensource.org
 [Erasmus Programme]: http://en.wikipedia.org/wiki/Erasmus_Programme
-[10.1109/MAP.2016.2541606]: http://dx.doi.org/10.1109/MAP.2016.2541606
-[zip file]: mfiles_nonuniform.zip
 
 [Install.md]: https://bitbucket.org/uoyaeg/aegmesher/src/tipInstall.md
-[tutorial,md]: https://bitbucket.org/uoyaeg/aegmesher/src/tip/tutorial/tutorial.md
+[tutorial.md]: https://bitbucket.org/uoyaeg/aegmesher/src/tip/tutorial/tutorial.md
 [UserManual.md]: https://bitbucket.org/uoyaeg/aegmesher/src/tip/doc/UserManual.md
 [Bugs.md]: https://bitbucket.org/uoyaeg/aegmesher/src/tip/doc/Bugs.md
 [ToDo.md]: https://bitbucket.org/uoyaeg/aegmesher/src/tip/doc/ToDo.md

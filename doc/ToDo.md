@@ -6,10 +6,19 @@
 
 ## Priority Items
 
+### Complete integration of Michael's non-uniform mesh generation algorithm.
+
+The prototype implmentation is in mesh/private/meshCreateNonUniformMeshLinesMB.m.
+It is currently disabled at lines of 366-371 in mesh/meshCreateLines.m due to some issues
+with the implementation of the local mesh line generation. A refactored form of the 
+algorithm is being built in mesh/private/meshCreateNonUniformMeshLines.m. Test drivers
+for these functions are in mesh/private/meshTestCreateNonUniformMeshLinesMB.m and 
+mesh/private/meshTestCreateNonUniformMeshLines.m.
 
 ### Make sure all the tests work with both Octave and MATLAB on both Linux and Windows.
 
-### Integrate Michael's non-uniform mesh generation algorithm.
+Most developement work has taken place with Octave so the behaviour under MATLAB needs 
+to be checked.
 
 ### Add more of Michael's tests to the test-suite, particularly for the nonuniform case.
 
