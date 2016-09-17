@@ -331,10 +331,9 @@ Further details of the full capabilities can be found in the [user manual][].
 
 [Octave]: http://www.gnu.org/software/octave
 [MATLAB]: http://www.mathworks.co.uk/products/matlab
-[Install.txt]: https://bitbucket.org/uoyaeg/aegmesher/raw/tip/Install.txt
+[Install.md]: https://bitbucket.org/uoyaeg/aegmesher/raw/tip/Install.md
 [Gmsh]: http://geuz.org/gmsh
-[user manual]: https://bitbucket.org/uoyaeg/aegmesher/raw/tip/doc/UserManual.txt
-[Install.txt]: https://bitbucket.org/uoyaeg/aegmesher/raw/tip/Install.txt
+[user manual]: https://bitbucket.org/uoyaeg/aegmesher/raw/tip/doc/UserManual.md
 [Gmsh manual]: http://geuz.org/gmsh/doc/texinfo/gmsh.html
 [AEG Enclosure Validation Test Case Suite]: http://www-users.york.ac.uk/~idf1/AEG/EnclosureValidationTestCase
 [tutorial.geo]: https://bitbucket.org/uoyaeg/aegmesher/raw/tip/tutorial/tutorial.geo
