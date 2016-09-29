@@ -213,7 +213,7 @@ Compatibility, Denver, Colorado, 5-9 August, 2013, pp. 222-226.
 [Open Source]: http://opensource.org
 [Erasmus Programme]: http://en.wikipedia.org/wiki/Erasmus_Programme
 
-[Install.md]: https://bitbucket.org/uoyaeg/aegmesher/src/tipInstall.md
+[Install.md]: https://bitbucket.org/uoyaeg/aegmesher/src/tip/Install.md
 [tutorial.md]: https://bitbucket.org/uoyaeg/aegmesher/src/tip/tutorial/tutorial.md
 [UserManual.md]: https://bitbucket.org/uoyaeg/aegmesher/src/tip/doc/UserManual.md
 [Bugs.md]: https://bitbucket.org/uoyaeg/aegmesher/src/tip/doc/Bugs.md
