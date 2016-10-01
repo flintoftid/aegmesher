@@ -82,13 +82,15 @@ doc/[UserManual.md][].
 Details of the mesher algorithms, particularly the non-uniform mesh line 
 generation can be found in the article ([Berens2016]).
 
+There is also a [wiki][] with examples and other information.
+
 ## Bugs and support
 
 The code is still under development and no doubt will contain many bugs. Known 
 significant bugs are listed in the file doc/[Bugs.md][]  in the source code. 
 
 Please report bugs using the bitbucket issue tracker at
-<https://bitbucket.org/uoyaeg/aegmesher/issues> or by email to <ian.flintoft@york.ac.uk>.
+<https://bitbucket.org/uoyaeg/aegmesher/issues> or by email to <ian.flintoft@googlemail.com>.
 
 For general guidance on how to write a good bug report see, for example:
 
@@ -120,7 +122,7 @@ We welcome any contributions to the development of the mesher, including:
   
 * Items in the to-do list in the file doc/[ToDo.md][].
 
-Please contact [Dr Ian Flintoft], <ian.flintoft@york.ac.uk>, if you are interested in helping 
+Please contact [Dr Ian Flintoft], <ian.flintoft@googlemail.com>, if you are interested in helping 
 with these or any other aspect of development.
 
 ## Licence
@@ -132,7 +134,7 @@ If you use AEG Mesher please cite ([Berens2016]).
 
 ## Developers
 
-[Dr Ian Flintoft][], <ian.flintoft@york.ac.uk>
+[Dr Ian Flintoft][], <ian.flintoft@googlemail.com>
 
 Mr Michael Berens, <michael-berens1@web.de>
 
@@ -140,7 +142,7 @@ Mr Michael Berens, <michael-berens1@web.de>
 
 ## Contacts
 
-[Dr Ian Flintoft][], <ian.flintoft@york.ac.uk>
+[Dr Ian Flintoft][], <ian.flintoft@googlemail.com>
 
 [Dr John Dawson][], <john.dawson@york.ac.uk>
 
@@ -219,3 +221,4 @@ Compatibility, Denver, Colorado, 5-9 August, 2013, pp. 222-226.
 [Bugs.md]: https://bitbucket.org/uoyaeg/aegmesher/src/tip/doc/Bugs.md
 [ToDo.md]: https://bitbucket.org/uoyaeg/aegmesher/src/tip/doc/ToDo.md
 [Licence.md]: https://bitbucket.org/uoyaeg/aegmesher/src/tip/Licence.md
+[wiki]: https://bitbucket.org/uoyaeg/aegmesher/wiki/Home

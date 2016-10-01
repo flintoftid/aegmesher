@@ -5,7 +5,7 @@ Copyright (C) 2010-2014 Ian Flintoft, Michael Berens & John Dawson
 
 Developers:
 
-* Ian Flintoft <ian.flintoft@york.ac.uk>
+* Ian Flintoft <ian.flintoft@googlemail.com>
 * Michael Berenss <michael-berens1@web.de> 
 * John Dawson <john.dawson@york.ac.uk>
   

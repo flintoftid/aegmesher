@@ -7,7 +7,7 @@
 
 This tutorial assumes you that the mesher software and Gmsh have already
 been installed on your computer using the installation instructions in
-[Install.txt][]. The example uses GNU [Octave][] on a Linux system but
+[Install.md][]. The example uses GNU [Octave][] on a Linux system but
 can easily be followed using [MATLAB][] and Windows based systems.
 
 It is also assumed that you have some familiarity with [Gmsh][] and unstructured
@@ -21,7 +21,7 @@ before starting this tutorial.
 ![Figure 1: The test object geometry][Figure1]
 
 The tutorial works through in detailed the meshing of one of the test
-configurations from the [AEG Enclosure Validation Test Case Suite][]. The 
+configurations from the [AEG Box Test Suite][] ([Flintoft2016][]). The 
 configuration to be meshed is shown in Figure 1. It consists of five 
 distinct objects:
 
@@ -323,6 +323,16 @@ above for each test object.
 Further details of the full capabilities can be found in the [user manual][].
 
 
+## References
+
+[Flintoft2016]: http://dx.doi.org/10.1109/TEMC.2016.2601658
+
+([Flintoft2016]) I D Flintoft, J F Dawson, L Dawson, A C Marvin, J Alvarez and S G. Garcia, 
+“A modular test suite for the validation and verification of electromagnetic solvers in 
+electromagnetic compatibility applications”, IEEE Transactions on Electromagnetic Compatibility, 
+in press, 2016.
+
+
 
 [Figure1]: https://bitbucket.org/uoyaeg/aegmesher/raw/tip/tutorial/figure1.jpg "The test object geometry"
 [Figure2]: https://bitbucket.org/uoyaeg/aegmesher/raw/tip/tutorial/figure2.jpg "Unstructured mesh of the test object viewed in Gmsh"
@@ -335,7 +345,7 @@ Further details of the full capabilities can be found in the [user manual][].
 [Gmsh]: http://geuz.org/gmsh
 [user manual]: https://bitbucket.org/uoyaeg/aegmesher/raw/tip/doc/UserManual.md
 [Gmsh manual]: http://geuz.org/gmsh/doc/texinfo/gmsh.html
-[AEG Enclosure Validation Test Case Suite]: http://www-users.york.ac.uk/~idf1/AEG/EnclosureValidationTestCase
+[AEG Box Test Suite]: https://bitbucket.org/uoyaeg/aegboxts
 [tutorial.geo]: https://bitbucket.org/uoyaeg/aegmesher/raw/tip/tutorial/tutorial.geo
 [meshTutorialExample.m]: https://bitbucket.org/uoyaeg/aegmesher/raw/tip/tutorial/meshTutorialExample.m
 [test directory]: https://bitbucket.org/uoyaeg/aegmesher/raw/tip/tests
