@@ -194,7 +194,7 @@ Compatibility, Denver, Colorado, 5-9 August, 2013, pp. 222-226.
 
 
 
-[Dr Ian Flintoft]: http://www.elec.york.ac.uk/staff/idf1.html
+[Dr Ian Flintoft]: https://scholar.google.co.uk/citations?user=2RZgeUQAAAAJ
 [Dr John Dawson]: http://www.elec.york.ac.uk/staff/jfd1.html
 [University of York]: http://www.york.ac.uk
 [Leibnitz Universität Hannover]: http://www.uni-hannover.de/en
