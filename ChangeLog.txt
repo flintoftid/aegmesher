@@ -1,3 +1,160 @@
+2016-10-02  Ian Flintoft  <ian.flintoft@york.ac.uk>
+
+	* ReadMe.md:
+	user: Ian Flintoft <ian.flintoft@york.ac.uk> branch 'default'
+	changed ReadMe.md
+
+	 Link update.
+	[f78f9c99bf15] [tip]
+
+2016-10-01  Ian Flintoft  <ian.flintoft@york.ac.uk>
+
+	* Licence.md, ReadMe.md, tutorial/tutorial.md:
+	user: Ian Flintoft <ian.flintoft@york.ac.uk> branch 'default'
+	changed Licence.md changed ReadMe.md changed tutorial/tutorial.md
+
+	 Fix links and update email.
+	[7482d854e74a]
+
+2016-09-29  Ian Flintoft  <ian.flintoft@york.ac.uk>
+
+	* ReadMe.md:
+	user: Ian Flintoft <ian.flintoft@york.ac.uk> branch 'default'
+	changed ReadMe.md
+
+	 Fix link.
+	[45ef04c2f7eb]
+
+2016-09-17  Ian Flintoft  <ian.flintoft@york.ac.uk>
+
+	* ReadMe.md, doc/ToDo.md:
+	user: Ian Flintoft <ian.flintoft@york.ac.uk> branch 'default'
+	changed ReadMe.md changed doc/ToDo.md
+
+	 Fixes.
+	[cced7c3adcc7]
+
+	* Install.md, Install.txt, Licence.md, Licence.txt, ReadMe.md,
+	ReadMe.txt, doc/Bugs.md, doc/Bugs.txt, doc/Done.md, doc/Done.txt,
+	doc/ImplementationReport.md, doc/ImplementationReport.txt,
+	doc/ToDo.md, doc/ToDo.txt, doc/UserManual.md, doc/UserManual.txt,
+	tutorial/tutorial.md, tutorial/tutorial.txt:
+	user: Ian Flintoft <ian.flintoft@york.ac.uk> branch 'default' added
+	Install.md added Licence.md added ReadMe.md added doc/Bugs.md added
+	doc/Done.md added doc/ImplementationReport.md added doc/ToDo.md
+	added doc/UserManual.md added tutorial/tutorial.md removed
+	Install.txt removed Licence.txt removed ReadMe.txt removed
+	doc/Bugs.txt removed doc/Done.txt removed
+	doc/ImplementationReport.txt removed doc/ToDo.txt removed
+	doc/UserManual.txt removed tutorial/tutorial.txt
+
+	 Documentation updates. Use md suffux for markdown files.
+	[32e1f1e649dd]
+
+2016-09-09  Ian Flintoft  <ian.flintoft@york.ac.uk>
+
+	* ReadMe.txt, doc/Bugs.txt, mesh/meshCreateLines.m,
+	mesh/private/geometricProgression.m,
+	mesh/private/meshCreateNonUniformMeshInterval.m,
+	mesh/private/meshCreateNonUniformMeshLines.m,
+	mesh/private/meshCreateNonUniformMeshLinesMB.m,
+	mesh/private/meshCreateUniformMeshInterval.m,
+	mesh/private/meshCreateUniformMeshLines.m,
+	mesh/private/meshFindOptD.m,
+	mesh/private/meshTestCreateNonUniformMeshLines.m,
+	mesh/private/meshTestCreateNonUniformMeshLinesMB.m,
+	tutorial/tutorial.txt:
+	user: Ian Flintoft <ian.flintoft@york.ac.uk> branch 'default' added
+	mesh/private/geometricProgression.m added
+	mesh/private/meshCreateNonUniformMeshInterval.m added
+	mesh/private/meshCreateNonUniformMeshLinesMB.m added
+	mesh/private/meshCreateUniformMeshInterval.m added
+	mesh/private/meshFindOptD.m added
+	mesh/private/meshTestCreateNonUniformMeshLines.m added
+	mesh/private/meshTestCreateNonUniformMeshLinesMB.m changed
+	ReadMe.txt changed doc/Bugs.txt changed mesh/meshCreateLines.m
+	changed mesh/private/meshCreateNonUniformMeshLines.m changed
+	mesh/private/meshCreateUniformMeshLines.m changed
+	tutorial/tutorial.txt
+
+	 Partial integration of nonuniform mesh line creation code.
+	Currently disabled pending resolving implementation issues.
+	[dcddd03f2345]
+
+2015-12-20  Ian David Flintoft  <ian.flintoft@york.ac.uk>
+
+	* ChangeLog.txt, ReadMe.txt, doc/ToDo.txt, doc/UserManual.txt,
+	mesh/meshBBoxRayIntersection.m, mesh/meshCreateLines.m,
+	mesh/meshMapGroups.m, mesh/meshSetDefaultOptions.m,
+	mesh/meshSmesh2Unmesh.m, mesh/meshWriteVulture.m,
+	mesh/private/meshBBoxRayIntersection.m,
+	mesh/private/meshCreateNonUniformMeshLines.m,
+	mesh/private/meshGetGroupOption.m,
+	mesh/private/meshSurf2VolMapParallelRays.m,
+	mesh/private/meshVolumeMapDivergentRays.m,
+	mesh/private/meshVolumeMapSurfaceGroup.m, tests/CMakeLists.txt,
+	tests/Plane01/CMakeLists.txt, tests/Plane01/Plane01.geo,
+	tests/Plane01/Plane01.msh, tests/Plane01/meshTestPlane01.m:
+	user: Ian David Flintoft <ian.flintoft@york.ac.uk> branch 'default'
+
+	added tests/Plane01/CMakeLists.txt added tests/Plane01/Plane01.geo
+	added tests/Plane01/Plane01.msh added
+	tests/Plane01/meshTestPlane01.m changed tests/CMakeLists.txt
+
+	 New test.
+
+	removed mesh/private/meshBBoxRayIntersection.m added
+	mesh/meshBBoxRayIntersection.m
+
+	 Made function public.
+
+	added mesh/private/meshSurf2VolMapParallelRays.m added
+	mesh/private/meshVolumeMapSurfaceGroup.m
+
+	 New mapping methods.
+
+	changed mesh/meshCreateLines.m
+
+	 Comment fixes and bug fix in constraint point collection.
+
+	changed mesh/meshMapGroups.m
+
+	 Add THICK_SURFACE mapping. Add rudimentary BBOX mapping - not
+	robust yet.
+
+	changed mesh/meshSetDefaultOptions.m
+
+	 Added physicalType option and Vulture export scale factor. Changed
+	default for options.vulture.useMaterialNames.
+
+	changed mesh/meshSmesh2Unmesh.m
+
+	 Prevent mapping of BBOX groups which are not stride 1 on the
+	structured mesh and therfore fail.
+
+	changed mesh/meshWriteVulture.m
+
+	 Substantial rewrite including scale factor support and preparation
+	for more sophisticated source and observer handling.
+
+	changed mesh/private/meshCreateNonUniformMeshLines.m
+
+	 Interface update.
+
+	changed mesh/private/meshGetGroupOption.m
+
+	 Fixed bug - missing endif - how did that ever work?
+
+	changed mesh/private/meshVolumeMapDivergentRays.m
+
+	 Fixed bug in resolver code.
+
+	changed ReadMe.txt changed doc/ToDo.txt changed doc/UserManual.txt
+	changed ChangeLog.txt
+
+	 Updated.
+	[4cbb12c90640]
+
 2014-09-18  Ian David Flintoft  <ian.flintoft@york.ac.uk>
 
 	* doc/Done.txt, doc/ToDo.txt, doc/UserManual.txt,
@@ -24,7 +181,7 @@
 	mesh/private/meshVolumeMapParallelRays.m
 
 	 Fixes for case where computational volume truncates objects.
-	[f0779d6c2c0f] [tip]
+	[f0779d6c2c0f]
 
 2014-09-14  Ian David Flintoft  <ian.flintoft@york.ac.uk>
 
