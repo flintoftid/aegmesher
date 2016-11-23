@@ -1,4 +1,4 @@
-function [ smesh ] = meshMapGroups( mesh , groupNamesToMap , lines , options )
+function [ smesh , soptions ] = meshMapGroups( mesh , groupNamesToMap , lines , options )
 %
 % meshMapGroups - Maps unstructured mesh onto a structured mesh.
 %
@@ -55,6 +55,9 @@ function [ smesh ] = meshMapGroups( mesh , groupNamesToMap , lines , options )
 %        .groupGroups()     - integer(var,numGroupGroup), sparse array of group of group indices.
 %                             groupGroup(i,j) gives the i-th index (into the groups array) of the
 %                             j-th group of groups. Hierarchical group of groups are NOT SUPPORTED.
+%
+% soptions - structure containing options for groups in structured mesh. 
+%
 
 % 
 % This file is part of aegmesher.
@@ -118,6 +121,10 @@ function [ smesh ] = meshMapGroups( mesh , groupNamesToMap , lines , options )
   smesh.numGroups = 0;
   smesh.groupNames = {};
   smesh.groupTypes = [];
+  
+  % Create updated options for structured mesh, deleting per group options.  
+  soptions = options;
+  soptions.group = [];
 
   % [FIXME] Add groupGroup - need to only include mapped groups.
 
@@ -200,6 +207,7 @@ function [ smesh ] = meshMapGroups( mesh , groupNamesToMap , lines , options )
         % Relabel group as volumetric on the structured mesh.
         smesh.groupTypes(smesh.numGroups) = 3;
         smesh.groupNames{smesh.numGroups} = thisGroupName;
+        soptions.group(smesh.numGroups) = thisOptions;    
       end % if
     case 'SURFACE'
       fprintf( '  Group is a surface object\n' );
@@ -230,6 +238,7 @@ function [ smesh ] = meshMapGroups( mesh , groupNamesToMap , lines , options )
       % Relabel group as a surface group on the structured mesh.
       smesh.groupTypes(smesh.numGroups) = 2;
       smesh.groupNames{smesh.numGroups} = thisGroupName;
+      soptions.group(smesh.numGroups) = thisOptions;   
     case 'CLOSED_SURFACE'
       fprintf( '  Group is a closed surface object\n' );
       % Mesh group type must be a (closed) surface. 
@@ -267,6 +276,7 @@ function [ smesh ] = meshMapGroups( mesh , groupNamesToMap , lines , options )
         % Relabel group as a surface group on the structured mesh.
         smesh.groupTypes(smesh.numGroups) = 2;
         smesh.groupNames{smesh.numGroups} = thisGroupName;
+        soptions.group(smesh.numGroups) = thisOptions;   
       end % if
     case 'THICK_SURFACE'
       fprintf( '  Group is a thick surface object\n' );
@@ -292,6 +302,7 @@ function [ smesh ] = meshMapGroups( mesh , groupNamesToMap , lines , options )
         % Relabel group as a volume group on the structured mesh.
         smesh.groupTypes(smesh.numGroups) = 3;
         smesh.groupNames{smesh.numGroups} = thisGroupName;
+        soptions.group(smesh.numGroups) = thisOptions;   
       end % if
     case 'LINE'
       fprintf( '  Group is a line object\n' );
@@ -322,6 +333,7 @@ function [ smesh ] = meshMapGroups( mesh , groupNamesToMap , lines , options )
       % Relabel group as line on the structured mesh.
       smesh.groupTypes(smesh.numGroups) = 1;
       smesh.groupNames{smesh.numGroups} = thisGroupName;
+      soptions.group(smesh.numGroups) = thisOptions;   
     case 'POINT'
       fprintf( '  Group is mapped as a node object\n' );
       smesh.numGroups = smesh.numGroups + 1;
@@ -338,7 +350,8 @@ function [ smesh ] = meshMapGroups( mesh , groupNamesToMap , lines , options )
       smesh.groups{smesh.numGroups} = idxBBox; 
       % Relabel group as a AABB group on the structured mesh.
       smesh.groupTypes(smesh.numGroups) = 4;
-      smesh.groupNames{smesh.numGroups} = thisGroupName;       
+      smesh.groupNames{smesh.numGroups} = thisGroupName;      
+      soptions.group(smesh.numGroups) = thisOptions;   
     otherwise
       error( 'Invalid object type %s' , thisOptions.type );
     end % switch

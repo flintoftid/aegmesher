@@ -3,7 +3,7 @@
 
 ## Nonuniform mesh line creation disabled due to bugs
 
-The noinuniform mesh line creation alogorithm is currently disabled due to 
+The non-uniform mesh line creation algorithm is currently disabled due to 
 some bugs in the implementation. It will be reinstated once these issues are fixed.
 
 ## TIMING_intersect test fails on 32-bit Linux system

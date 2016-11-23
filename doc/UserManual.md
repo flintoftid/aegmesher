@@ -213,11 +213,21 @@ indices of particular named groups:
     options.groups(groupIdx).<perGroupOptionName> = <optionValue>
  
     options.mesh.<globalOptionName> = <optionValue>
+    
+Once the options are set the mesh line are created using the `meshCreateLines()`
+function
 
     [ lines ] = meshCreateLines( unmesh , groupNamesToMap , options );
 
-    [ smesh ] = meshMapGroups( unmesh , groupNamesToMap , lines , options );
+This returns a structure called `lines` with fields `x`, `y` and `z` containing
+the mesh line coordinates. The groups in the unstructured mesh are then mapped
+onto the structured mesh using `meshMapGroups()`:
+    
+    [ smesh , soptions ] = meshMapGroups( unmesh , groupNamesToMap , lines , options );
 
+This returns the structured mesh in the structure `smesh` and the meshing options
+for the mapped groups in `soptions`.
+    
 
 ## Mesh line generation options
 
@@ -375,15 +385,15 @@ Determines whether to plot mesh line generation statistics.
 
 options.group(groupIdx).<optionName>
 
-Name         | Type    | Default | Units | Range
-:------------|:-------:|:-------:|:-----:|:----------------
-materialName | string  | 'PEC'   | n/a   | arbitrary string
-useDensity   | boolean |  true   | n/a   | true, false
-dmin         | real    | 1e-2    | m     | >0.0
-dmax         | real    | 1e-2    | m     | >0.0, >=dmin
-Dmin         | real    | 10.0    | n/a   | >0.0
-Dmax         | real    | 20.0    | n/a   | >0.0, >=Dmax
-weight       | real    | 1.0     | n/a   | >=-Inf, <=Inf
+Name         | Type    | Default    | Units | Range
+:------------|:-------:|:----------:|:-----:|:----------------
+materialName | string  | 'PEC'      | n/a   | arbitrary string
+useDensity   | boolean |  true      | n/a   | true, false
+dmin         | real    | 1e-2       | m     | >0.0
+dmax         | real    | 1e-2       | m     | >0.0, >=dmin
+Dmin         | real    | 10.0       | n/a   | >0.0
+Dmax         | real    | 20.0       | n/a   | >0.0, >=Dmax
+weight       | real    | 1.0        | n/a   | >=-Inf, <=Inf
 
 #### materialName
 
@@ -494,7 +504,7 @@ Notes:
 #### physicalType
    
 Physical type of the mapped object in the structured mesh. Currently not used by the mapper
-but available to mesh exporters.
+though it may be in future version. It is currently passed through for use in mesh exporters.
 
 physicalType     | group type       | Description of mapped group 
 :----------------|:-----------------|:-----------------------------------------------
@@ -631,10 +641,15 @@ Whether to plot statistics.
 
 options.vulture.<optionName>
 
-Name             | Type    | Default | Units | Range
-:----------------|: ------:|:-------:|:-----:|:-----------
-useMaterialNames | boolean | false   | n/a   | true, false
-scaleFactor      | real    | 1.0     | n/a   | > 0.0
+Name             | Type    | Default    | Units | Range
+:----------------|: ------:|:----------:|:-----:|:--------------------------------
+physicalType     | string  | 'MATERIAL' | n/a   | 'MATERIAL', 'SOURCE', 'OBSERVER' 
+useMaterialNames | boolean | false      | n/a   | true, false
+scaleFactor      | real    | 1.0        | n/a   | > 0.0
+
+#### physicalType
+
+See group mapping options above.
 
 #### useMaterialNames
 
@@ -725,7 +740,7 @@ z               | real(numZLines)            | z-coordinates of mesh lines
 numGroups       | integer                    | number of groups
 groupNames      | string{numGroups}          | cell-array of group names
 groupTypes      | integer(numGroups)         | type (dimensionality) of each group
-groups          | array{numGroups}(nx6)      | cell-aaray of elements bounding boxes
+groups          | array{numGroups}(nx6)      | cell-array of elements bounding boxes
 numGroupGroups  | integer                    | number of groups of groups
 groupGroupNames | string{numGroupGroups}     | cell-array of group of groups names
 groupGroups     | integer(var,numGroupGroup) | sparse array of group of group's group indices
@@ -768,4 +783,3 @@ Group type 4 provides special support for AABBs.
 [HDF5]: http://www.hdfgroup.org/HDF5
 [nlopt]: http://ab-initio.mit.edu/wiki/index.php/NLopt
 [CONCEPT-II]: http://www.tet.tuhh.de/concept/?lang=en
-
