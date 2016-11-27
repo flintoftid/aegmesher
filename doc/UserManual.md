@@ -633,19 +633,23 @@ Whether to plot statistics.
 
 # Structured mesh export
 
-## Vulture
+## General export options
 
-    meshWriteVulture( mshFileName , smesh , options )
-
-### Vulture export options
-
-options.vulture.<optionName>
+options.export.<optionName>
 
 Name             | Type    | Default    | Units | Range
 :----------------|: ------:|:----------:|:-----:|:--------------------------------
 physicalType     | string  | 'MATERIAL' | n/a   | 'MATERIAL', 'SOURCE', 'OBSERVER' 
 useMaterialNames | boolean | false      | n/a   | true, false
 scaleFactor      | real    | 1.0        | n/a   | > 0.0
+
+## Vulture
+
+    meshWriteVulture( mshFileName , smesh , options )
+
+## Hawk
+
+    meshWriteHawk( mshFileName , smesh , options )
 
 #### physicalType
 

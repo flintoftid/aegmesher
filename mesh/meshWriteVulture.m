@@ -55,9 +55,9 @@ function meshWriteVulture( mshFileName , smesh , options )
   directiveString = { 'TW' , 'TB' , 'MB' };
   
   % Mesh lines.
-  x = options.vulture.scaleFactor .* smesh.lines.x;
-  y = options.vulture.scaleFactor .* smesh.lines.y;
-  z = options.vulture.scaleFactor .* smesh.lines.z;
+  x = options.export.scaleFactor .* smesh.lines.x;
+  y = options.export.scaleFactor .* smesh.lines.y;
+  z = options.export.scaleFactor .* smesh.lines.z;
 
   % Get material names.
   for groupIdx=1:smesh.numGroups
@@ -66,7 +66,7 @@ function meshWriteVulture( mshFileName , smesh , options )
     else
       matNames{groupIdx} = 'NA';      
     end % if
-    if( options.vulture.useMaterialNames )
+    if( options.export.useMaterialNames )
       names{groupIdx} = matNames{groupIdx};
     else
       names{groupIdx} = smesh.groupNames{groupIdx};

@@ -297,7 +297,7 @@ of the cubic mesh to accommodate the original geometry (see Figure 4).
 Once you are happy with the structured mesh it can then be exported for use in a solver.
 At the moment we only have an exporter for Vulture so let's try that:
 
-    octave> options.vulture.useMaterialNames = false;
+    octave> options.export.useMaterialNames = false;
     octave> meshWriteVulture( 'vulture.mesh' , smesh , options );
 
 The option useMaterialNames tells the exporter to use the group name to tag the 

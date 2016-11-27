@@ -108,7 +108,7 @@ function meshTutorialExample()
   meshWriteGmsh( 'tutorial_structured_mesh.msh' , unmesh );
 
   % Export the structured mesh to the target solver.
-  options.vulture.useMaterialNames = false;
+  options.export.useMaterialNames = false;
   meshWriteVulture( 'vulture.mesh' , smesh , options );
 
 end % function

@@ -7,7 +7,7 @@ function [ groupNamesToMap , options ] = meshTestPlane01( mesh )
   options.mesh.dmin = 10e-2;
   options.mesh.dmax = 10e-2;
   options.mesh.isPlot = false;
-  options.vulture.useMaterialNames = false;
+  options.export.useMaterialNames = false;
 
   groupNamesToMap = { 'Plane01' , 'CompVolume' }; 
   groupIdxToMap = meshGetGroupIndices( mesh , groupNamesToMap );

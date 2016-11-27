@@ -82,7 +82,7 @@ function meshTestDriver( testName , withVulture )
   if( strcmp( withVulture , 'ON' ) )
 
     % Export structured mesh in Vulture format.
-    options.vulture.useMaterialNames = false;
+    options.export.useMaterialNames = false;
     tic();
     meshWriteVulture( 'vulture.mesh' , smesh , options );
     times(7) = toc();

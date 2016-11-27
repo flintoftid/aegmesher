@@ -126,7 +126,7 @@ function [ options ] = meshSetDefaultOptions( numGroups , varargin )
   options.mesh.isPlot = false;
 
   % Vulture export options.
-  options.vulture.useMaterialNames = false;
-  options.vulture.scaleFactor = 1.0;
+  options.export.useMaterialNames = false;
+  options.export.scaleFactor = 1.0;
 
 end % function

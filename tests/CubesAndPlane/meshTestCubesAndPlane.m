@@ -11,7 +11,7 @@ function [  groupNamesToMap , options ] = meshTestCubesAndPlane( mesh )
   options.mesh.isPlot = false;
   options.mesh.epsCoalesceLines = 1e-4;
   options.mesh.epsCompVol = 0;
-  options.vulture.useMaterialNames = false;
+  options.export.useMaterialNames = false;
 
   groupNamesToMap = { 'cube1' , 'cube2' , 'cube3' , 'plane1' , 'CompVolume' }; 
   groupIdxToMap = meshGetGroupIndices( mesh , groupNamesToMap );
