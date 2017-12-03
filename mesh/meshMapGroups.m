@@ -124,7 +124,7 @@ function [ smesh , soptions ] = meshMapGroups( mesh , groupNamesToMap , lines , 
   
   % Create updated options for structured mesh, deleting per group options.  
   soptions = options;
-  soptions.group = [];
+  %soptions.group = {};
 
   % [FIXME] Add groupGroup - need to only include mapped groups.
 

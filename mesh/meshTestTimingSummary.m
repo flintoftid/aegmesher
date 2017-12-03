@@ -45,6 +45,9 @@ function meshTestTimingSummary( isPlot , testNames )
   for testIdx = 1:length( testNames)
     % Function is run one level below the test folder so we need to look one level up!
     fh = fopen( [ '../' , testNames{testIdx} , '/' , testNames{testIdx} , '.times' ] , 'r' );
+    if( fh == -1 )
+      error( 'cannot open %s ' , [ '../' , testNames{testIdx} , '/' , testNames{testIdx} , '.times' ] );
+    end % if
     [ ~ ] = fgetl( fh );
     thisTimes = fscanf( fh , '%f' , Inf );
     assert( length( thisTimes ) == 9 );

@@ -24,7 +24,7 @@ function meshWriteHawk( mshFileName , smesh , options )
 %
 % options             - user defined control information.
 %
-%  In addition to the meshing options this exporter recogises the following options: 
+%  In addition to the meshing options this exporter recognises the following options: 
 %
 %    .export.useMaterialNames  - boolean, use material names (if true) or group
 %                                names (if false) for materials in exported mesh.
@@ -47,13 +47,13 @@ function meshWriteHawk( mshFileName , smesh , options )
 %
 % for volumetric materials.
 %
-% See the Hawk user manual for the specficiation of these parameters [1].
+% See the Hawk user manual for the specification of these parameters [1].
 %
 % References:
 %
-% J. F. Dawson and S. J. Porter, "A user’s guide to the HAWK Transmission 
-% Line Matrix Package", version 1.3, Department of Electronics,
-% University of York, Heslington, UK, September, 1999.
+% [1] J. F. Dawson and S. J. Porter, "A user’s guide to the HAWK Transmission 
+%     Line Matrix Package", version 1.3, Department of Electronics,
+%     University of York, Heslington, UK, September, 1999.
 %
 
 % This file is part of aegmesher.

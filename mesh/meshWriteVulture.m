@@ -21,10 +21,29 @@ function meshWriteVulture( mshFileName , smesh , options )
 %   .groupTypes()     - (numEntityGroups) integer array of (AMELET group) types:
 %                       0 - nodes, 1 - edge, 2 - face, 3 - volume
 %   .groups()         - (numEntityGroups x var) sparse array of node/element indices.
-% options             - user defined control information
+%
+% options             - user defined control information.
+%
+%  In addition to the meshing options this exporter recognises the following options: 
+%
+%    .export.useMaterialNames  - boolean, use material names (if true) or group
+%                                names (if false) for materials in exported mesh.
+%    .export.scaleFactor       - real scalar, scale factor for mesh.
+%
+% Materials:
+%
+% The exporter names the materials according to the material name or group name
+% and provides a basic type directive mapping this to the material name. These
+% type directives will need to be set correctly by the user, as described in the 
+% Vulture user manual [1].
+% 
+% References:
+%
+% [1] I. D. Flintoft, "Vulture FDTD code user manual", Vulture version 0.7.0,
+%     mesh version 1.0.0, 23 November, 2016. 
+%     URL: https://bitbucket.org/uoyaeg/vulture/wiki/UserManual.pdf
 %
 
-% 
 % This file is part of aegmesher.
 %
 % aegmesher structured mesh generator and utilities.
@@ -44,7 +63,7 @@ function meshWriteVulture( mshFileName , smesh , options )
 % along with aegmesher.  If not, see <http://www.gnu.org/licenses/>.
 % 
 
-% Author: M. Berens
+% Author: M. Berens and I. D. Flintoft
 % Date: 12/10/2013
 % Version 1.0.0
 
@@ -72,10 +91,6 @@ function meshWriteVulture( mshFileName , smesh , options )
       names{groupIdx} = smesh.groupNames{groupIdx};
     end % if
   end % for
-
-  % Sanitise names. 
-  %materialName = cell2mat( smesh.groupNames(1) );
-  %materialName = regexprep( materialName , '[^\w'']' , '' );
 
   % Create vulture mesh file.
   fprintf( 'Opening vulture mesh file %s...\n' , mshFileName );
@@ -163,7 +178,8 @@ function meshWriteVulture( mshFileName , smesh , options )
   fprintf( fout , 'NT 10000\n' );
 
   % If we don't use XL/YL/ZL mesh will start at (0,0,0) and outputs
-  % mesh/data may not match input mesh. Need MO card support in vulture.
+  % mesh/data may not match input mesh. Need MO card support in vulture
+  % to allow for offset origin.
   %switch( options.mesh.meshType )
   %case 'CUBIC'
   %  d = mean( [ diff( x ) , diff( y ) , diff( z ) ] );

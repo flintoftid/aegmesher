@@ -12,7 +12,6 @@ Michael Berens, "Algorithm for mesh generation with application for
 FDTD", Internship Report, University of York and The Leibnitz 
 Universität Hannover, October 2013.
 
-
 ## Introduction
 
 
