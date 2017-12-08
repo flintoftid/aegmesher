@@ -6,7 +6,7 @@
 
 The Applied Electromagnetics Group ([AEG][]) mesh generator, *aegmesher*, is an 
 [Open Source][] structured mesh generator for creating uniform and non-uniform 
-cuboid meshes. It was primarily developed in the [Department of Electronics][] 
+cuboid meshes. It was primarily developed in the [Department of Electronic Engineering][] 
 at the [University of York][] for generating meshes for finite-difference 
 time-domain ([FDTD][]) and similar electromagnetic solvers.
 
@@ -160,6 +160,19 @@ generator.
 
 ## Publications using AEG Mesher
 
+[Flintoft2018]: http://dx.doi.org/10.1109/TMTT.2017.2778059
+
+([Flintoft2018]) I. D. Flintoft, S. A. Bourke, J. Alvarez, J. F. Dawson, M. R. Cabello, 
+M. P. Robinson and S. G. Garcia, “Face centered anisotropic surface impedance boundary 
+conditions in FDTD”, IEEE Transactions on Microwave Theory and Techniques, vol. 66, 2018.
+
+[Bourke2017]: http://dx.doi.org/10.1109/EMCEurope.2017.8094791
+
+([Bourke2017]) S. A. Bourke, J. F. Dawson, I. D. Flintoft, M. P. Robinson, “Errors in 
+the shielding effectiveness of cavities due to stair-cased meshing in FDTD: Application 
+of empirical correction factors”, EMC Europe 2017, International Symposium and Exhibition 
+on Electromagnetic Compatibility, Angers, France, paper no. 52, 4-8 Sep. 2017.
+
 [Berens2016]: http://dx.doi.org/10.1109/MAP.2016.2541606
 
 ([Berens2016]) M. K. Berens, I. D. Flintoft and J. F. Dawson, “Open source 
@@ -193,13 +206,12 @@ Compatibility, Denver, Colorado, 5-9 August, 2013, pp. 222-226.
 * Matthijs Sypkens Smit's [list of free/open mesh generation software](http://graphics.tudelft.nl/~matthijss/oss_meshing_software.html)
 
 
-
-[Dr Ian Flintoft]: https://idflintoft.bitbucket.io
-[Dr John Dawson]: http://www.elec.york.ac.uk/staff/jfd1.html
-[University of York]: http://www.york.ac.uk
 [Leibnitz Universität Hannover]: http://www.uni-hannover.de/en
-[Department of Electronics]: http://www.elec.york.ac.uk
-[AEG]: http://www.elec.york.ac.uk/research/physLayer/appliedEM.html
+[University of York]: http://www.york.ac.uk
+[Department of Electronic Engineering]: https://www.york.ac.uk/electronic-engineering
+[AEG]:  https://www.york.ac.uk/electronic-engineering/research/communication-technologies/applied-electromagnetics-devices
+[Dr Ian Flintoft]: https://idflintoft.bitbucket.io
+[Dr John Dawson]: https://www.york.ac.uk/electronic-engineering/staff/john_dawson
 [Gmsh]: http://geuz.org/gmsh
 [AMELET-HDF]: https://code.google.com/p/amelet-hdf
 [Octave]: http://www.gnu.org/software/octave
@@ -214,7 +226,6 @@ Compatibility, Denver, Colorado, 5-9 August, 2013, pp. 222-226.
 [CONCEPT-II]: http://www.tet.tuhh.de/concept/?lang=en
 [Open Source]: http://opensource.org
 [Erasmus Programme]: http://en.wikipedia.org/wiki/Erasmus_Programme
-
 [Install.md]: https://bitbucket.org/uoyaeg/aegmesher/src/tip/Install.md
 [tutorial.md]: https://bitbucket.org/uoyaeg/aegmesher/src/tip/tutorial/tutorial.md
 [UserManual.md]: https://bitbucket.org/uoyaeg/aegmesher/src/tip/doc/UserManual.md
