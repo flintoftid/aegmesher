@@ -41,7 +41,6 @@ function meshWriteVulture( mshFileName , smesh , options )
 %
 % [1] I. D. Flintoft, "Vulture FDTD code user manual", Vulture version 0.7.0,
 %     mesh version 1.0.0, 23 November, 2016. 
-%     URL: https://bitbucket.org/uoyaeg/vulture/wiki/UserManual.pdf
 %
 
 % This file is part of aegmesher.

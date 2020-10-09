@@ -89,8 +89,8 @@ There is also a [wiki][] with examples and other information.
 The code is still under development and no doubt will contain many bugs. Known 
 significant bugs are listed in the file doc/[Bugs.md][]  in the source code. 
 
-Please report bugs using the bitbucket issue tracker at
-<https://bitbucket.org/uoyaeg/aegmesher/issues> or by email to <ian.flintoft@googlemail.com>.
+Please report bugs using the issue tracker at
+<https://github.com/flintoftid/aegmesher/issues> or by email to <ian.flintoft@googlemail.com>.
 
 For general guidance on how to write a good bug report see, for example:
 
@@ -100,8 +100,6 @@ For general guidance on how to write a good bug report see, for example:
 
 Some of the tips in <http://www.catb.org/esr/faqs/smart-questions.html> are also 
 relevant to reporting bugs.
-
-There is a Wiki on the bitbucket [project page](https://bitbucket.org/uoyaeg/aegmesher/wiki/). 
 
 ## How to contribute
 
@@ -210,14 +208,14 @@ Compatibility, Denver, Colorado, 5-9 August, 2013, pp. 222-226.
 [University of York]: http://www.york.ac.uk
 [Department of Electronic Engineering]: https://www.york.ac.uk/electronic-engineering
 [AEG]:  https://www.york.ac.uk/electronic-engineering/research/communication-technologies/applied-electromagnetics-devices
-[Dr Ian Flintoft]: https://idflintoft.bitbucket.io
+[Dr Ian Flintoft]: https://flintoftid.github.io
 [Dr John Dawson]: https://www.york.ac.uk/electronic-engineering/staff/john_dawson
 [Gmsh]: http://geuz.org/gmsh
 [AMELET-HDF]: https://code.google.com/p/amelet-hdf
 [Octave]: http://www.gnu.org/software/octave
 [MATLAB]: http://www.mathworks.co.uk/products/matlab
 [Mercurial]: http://mercurial.selenic.com
-[Vulture]: https://bitbucket.org/uoyaeg/vulture
+[Vulture]: https://github.com/flintoftid/vulture
 [FDTD]: http://en.wikipedia.org/wiki/Finite-difference_time-domain_method
 [OctaveForge]: http://octave.sourceforge.net
 [HDF5]: http://www.hdfgroup.org/HDF5
@@ -226,10 +224,10 @@ Compatibility, Denver, Colorado, 5-9 August, 2013, pp. 222-226.
 [CONCEPT-II]: http://www.tet.tuhh.de/concept/?lang=en
 [Open Source]: http://opensource.org
 [Erasmus Programme]: http://en.wikipedia.org/wiki/Erasmus_Programme
-[Install.md]: https://bitbucket.org/uoyaeg/aegmesher/src/tip/Install.md
-[tutorial.md]: https://bitbucket.org/uoyaeg/aegmesher/src/tip/tutorial/tutorial.md
-[UserManual.md]: https://bitbucket.org/uoyaeg/aegmesher/src/tip/doc/UserManual.md
-[Bugs.md]: https://bitbucket.org/uoyaeg/aegmesher/src/tip/doc/Bugs.md
-[ToDo.md]: https://bitbucket.org/uoyaeg/aegmesher/src/tip/doc/ToDo.md
-[Licence.md]: https://bitbucket.org/uoyaeg/aegmesher/src/tip/Licence.md
-[wiki]: https://bitbucket.org/uoyaeg/aegmesher/wiki/Home
+[Install.md]: https://github.com/flintoftid/aegmesher/blob/master/Install.md
+[tutorial.md]: https://github.com/flintoftid/aegmesher/blob/master/tutorial/tutorial.md
+[UserManual.md]: https://github.com/flintoftid/aegmesher/blob/master/doc/UserManual.md
+[Bugs.md]: https://github.com/flintoftid/aegmesher/blob/master/doc/Bugs.md
+[ToDo.md]: https://github.com/flintoftid/aegmesher/blob/master/doc/ToDo.md
+[Licence.md]: https://github.com/flintoftid/aegmesher/blob/master/Licence.md
+

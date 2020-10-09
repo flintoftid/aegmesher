@@ -43,13 +43,13 @@ the software outside of the test-suite.
 
 ### Get the source code
 
-Either use mercurial to clone the source code repository on Bitbucket,
-for example using Mercurial directly from a Linux shell,
+Either use git to clone the source code repository on github.com,
+for example using git directly from a Linux shell,
 
-    $ hg clone ssh://hg@bitbucket.org/uoyaeg/aegmesher aegmesher-working
+    $ git clone https://github.com/flintoftid/aegmesher.git aegmesher-working
 
 or download a zip file of the source code from
-https://bitbucket.org/uoyaeg/aegmesher/downloads
+https://github.com/flintoftid/aegnec2/archive/master.zip
 and unzip it into a directory call aegmesher-working
 
     $ unzip aeg-aegmesher-x12ey12ey.zip

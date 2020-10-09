@@ -782,7 +782,7 @@ Group type 4 provides special support for AABBs.
 [AMELET-HDF]: https://code.google.com/p/amelet-hdf
 [Octave]: http://www.gnu.org/software/octave
 [MATLAB]: http://www.mathworks.co.uk/products/matlab
-[Vulture]: https://bitbucket.org/uoyaeg/vulture
+[Vulture]: https://github.com/flintoftid/vulture
 [FDTD]: http://en.wikipedia.org/wiki/Finite-difference_time-domain_method
 [HDF5]: http://www.hdfgroup.org/HDF5
 [nlopt]: http://ab-initio.mit.edu/wiki/index.php/NLopt

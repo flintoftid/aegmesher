@@ -27,5 +27,5 @@ GNU General Public License Version 3 (or later) given in the
 file Licences/[gpl-3.0.txt][].
 
 [gpl-3.0.txt]: http://www.gnu.org/copyleft/gpl.html
-[TriangleRayIntersection-Licence.txt]: https://bitbucket.org/uoyaeg/aegmesher/src/tip/Licences/TriangleRayIntersection-Licence.txt.
+[TriangleRayIntersection-Licence.txt]: https://github.com/flintoftid/aegmesher/blob/master/Licences/TriangleRayIntersection-Licence.txt.
 

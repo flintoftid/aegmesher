@@ -334,18 +334,19 @@ in press, 2016.
 
 
 
-[Figure1]: https://bitbucket.org/uoyaeg/aegmesher/raw/tip/tutorial/figure1.jpg "The test object geometry"
-[Figure2]: https://bitbucket.org/uoyaeg/aegmesher/raw/tip/tutorial/figure2.jpg "Unstructured mesh of the test object viewed in Gmsh"
-[Figure3]: https://bitbucket.org/uoyaeg/aegmesher/raw/tip/tutorial/figure3.jpg "The structured mesh viewed in Gmsh"
-[Figure4]: https://bitbucket.org/uoyaeg/aegmesher/raw/tip/tutorial/figure4.jpg "Merged input unstructured mesh and output structured mesh"
+[Figure1]: https://github.com/flintoftid/aegmesher/blob/master/tutorial/figure1.jpg "The test object geometry"
+[Figure2]: https://github.com/flintoftid/aegmesher/blob/master/tutorial/figure2.jpg "Unstructured mesh of the test object viewed in Gmsh"
+[Figure3]: https://github.com/flintoftid/aegmesher/blob/master/tutorial/figure3.jpg "The structured mesh viewed in Gmsh"
+[Figure4]: https://github.com/flintoftid/aegmesher/blob/master/tutorial/figure4.jpg "Merged input unstructured mesh and output structured mesh"
 
 [Octave]: http://www.gnu.org/software/octave
 [MATLAB]: http://www.mathworks.co.uk/products/matlab
-[Install.md]: https://bitbucket.org/uoyaeg/aegmesher/raw/tip/Install.md
+[Install.md]: https://github.com/flintoftid/aegmesher/blob/master/Install.md
 [Gmsh]: http://geuz.org/gmsh
-[user manual]: https://bitbucket.org/uoyaeg/aegmesher/raw/tip/doc/UserManual.md
+[user manual]: https://github.com/flintoftid/aegmesher/blob/master/doc/UserManual.md
 [Gmsh manual]: http://geuz.org/gmsh/doc/texinfo/gmsh.html
-[AEG Box Test Suite]: https://bitbucket.org/uoyaeg/aegboxts
-[tutorial.geo]: https://bitbucket.org/uoyaeg/aegmesher/raw/tip/tutorial/tutorial.geo
-[meshTutorialExample.m]: https://bitbucket.org/uoyaeg/aegmesher/raw/tip/tutorial/meshTutorialExample.m
-[test directory]: https://bitbucket.org/uoyaeg/aegmesher/raw/tip/tests
+[AEG Box Test Suite]: (https://github.com/flintoftid/aegboxts
+[tutorial.geo]: https://github.com/flintoftid/aegmesher/blob/master/tutorial/tutorial.geo
+[meshTutorialExample.m]: https://github.com/flintoftid/aegmesher/blob/master/tutorial/meshTutorialExample.m
+[test directory]: (https://github.com/flintoftid/aegmesher/blob/master/tests
+
