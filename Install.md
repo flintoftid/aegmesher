@@ -1,6 +1,4 @@
 
-[TOC]
-
 # AEG Mesher: Installation and testing
 
 ## Requirements
@@ -20,7 +18,7 @@ to use the software. Additional requirements are:
 
 5. (Optional) To run the test-suite automatically the [CMake][] software build tool is needed.
 
-6. (Optional) To help with development or as an alternative way to download the source a client for the [Mercurial][] Version 
+6. (Optional) To help with development or as an alternative way to download the source a client for the [git][] Version 
    Control System is required.
 
 The code has been primarily developed using GNU [Octave][] on Linux platforms, but should run under both GNU [Octave][] 
@@ -110,7 +108,7 @@ directory to somewhere convenient and add it to your Octave/MATLAB path.
 [AMELET-HDF]: https://code.google.com/p/amelet-hdf
 [Octave]: http://www.gnu.org/software/octave
 [MATLAB]: http://www.mathworks.co.uk/products/matlab
-[Mercurial]: http://mercurial.selenic.com
+[git]: https://git-scm.com
 [OctaveForge]: http://octave.sourceforge.net
 [HDF5]: http://www.hdfgroup.org/HDF5
 [CMake]: http://www.cmake.org

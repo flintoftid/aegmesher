@@ -1,6 +1,4 @@
-![](https://bytebucket.org/uoyaeg/aegmesher/wiki/Blade1.jpg "AEG Blade Antenna")
-
-[TOC]
+![](https://github.com/flintoftid/aegmesher/blob/master/doc/blade.jpg "AEG Blade Antenna")
 
 # AEG Mesher: An Open Source Structured Mesh Generator for FDTD Simulations
 
@@ -65,7 +63,7 @@ Additional requirements are:
    needed.
 
 6. (Optional) To help with development or as an alternative way to download the source 
-   a client for the [Mercurial][] Version Control System is required.
+   a client for the [git][] Version Control System is required.
 
 The code has been primarily developed using GNU [Octave][] on Linux platforms, 
 but should run under both GNU [Octave][] and [MATLAB][] on Linux and Windows 
@@ -81,8 +79,6 @@ doc/[UserManual.md][].
 
 Details of the mesher algorithms, particularly the non-uniform mesh line 
 generation can be found in the article ([Berens2016]).
-
-There is also a [wiki][] with examples and other information.
 
 ## Bugs and support
 
@@ -201,20 +197,19 @@ Compatibility, Denver, Colorado, 5-9 August, 2013, pp. 222-226.
 
 * Robert Schneiders' [list of free and commercial mesh generation software](http://www.robertschneiders.de/meshgeneration//software.html).
 
-* Matthijs Sypkens Smit's [list of free/open mesh generation software](http://graphics.tudelft.nl/~matthijss/oss_meshing_software.html)
 
 
 [Leibnitz Universität Hannover]: http://www.uni-hannover.de/en
 [University of York]: http://www.york.ac.uk
 [Department of Electronic Engineering]: https://www.york.ac.uk/electronic-engineering
-[AEG]:  https://www.york.ac.uk/electronic-engineering/research/communication-technologies/applied-electromagnetics-devices
+[AEG]: https://www.york.ac.uk/electronic-engineering/research/communication-technologies/applied-electromagnetics-devices
 [Dr Ian Flintoft]: https://flintoftid.github.io
 [Dr John Dawson]: https://www.york.ac.uk/electronic-engineering/staff/john_dawson
 [Gmsh]: http://geuz.org/gmsh
 [AMELET-HDF]: https://code.google.com/p/amelet-hdf
 [Octave]: http://www.gnu.org/software/octave
 [MATLAB]: http://www.mathworks.co.uk/products/matlab
-[Mercurial]: http://mercurial.selenic.com
+[git]: https://git-scm.com
 [Vulture]: https://github.com/flintoftid/vulture
 [FDTD]: http://en.wikipedia.org/wiki/Finite-difference_time-domain_method
 [OctaveForge]: http://octave.sourceforge.net
@@ -230,4 +225,3 @@ Compatibility, Denver, Colorado, 5-9 August, 2013, pp. 222-226.
 [Bugs.md]: https://github.com/flintoftid/aegmesher/blob/master/doc/Bugs.md
 [ToDo.md]: https://github.com/flintoftid/aegmesher/blob/master/doc/ToDo.md
 [Licence.md]: https://github.com/flintoftid/aegmesher/blob/master/Licence.md
-
