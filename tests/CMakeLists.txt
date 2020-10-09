@@ -82,4 +82,6 @@ add_subdirectory ( WireBox )
 add_subdirectory ( Blade1 )
 
 # Create test timing summary - must be last!
-add_subdirectory ( Summary )
+if( WITH_MESHER )
+  add_subdirectory ( Summary )
+endif( WITH_MESHER )
