@@ -10,6 +10,9 @@
 // high:  Front  Right Up
 //
 
+// AEG Mesher currently only supports version 2.x Gmsh msh files.
+Mesh.MshFileVersion = 2.0;
+
 // Primary geometrical parameters.
 EN_depth = 0.500;              // Depth of the enclosure (x-direction).
 EN_width = 0.600;              // Width of the enclosure (y-direction).

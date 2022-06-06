@@ -21,3 +21,10 @@ are not sensible.
 
 These aren't really failures but a difference in semantics in the 
 use of the gmsh file format.
+
+## Gmsh input file appears to have been replaced by mesh file in test Solid01.
+
+The file Solid01.geo appears to be a mesh file rather than a geo file. This seems 
+to go back to the first commit to the original Mercurial repository. The test still
+works!
+

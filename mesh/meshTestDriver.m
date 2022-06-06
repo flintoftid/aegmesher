@@ -93,8 +93,7 @@ function meshTestDriver( testName , withVulture )
     times(7) = NaN;
       
   end % if
-pwd
-'aaa'
+
   % Write timings to file.
   fh_timing = fopen( [ testName , '.times' ] , 'w' );
   labels = { '#elements' , '   #cells' , '   Read' , '  Lines' , '    Map' , '   S2Un' , '   Save' , '  Write' , '  Vult.'  };

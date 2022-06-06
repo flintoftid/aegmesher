@@ -137,9 +137,9 @@ function [ mesh ] = meshReadGmsh( mshFileName , groupFormat )
            error( 'Failed to parse $MeshFormat section.' );
         end % if
             
-        % We only support version 2.0 and greater.
-        if( meshVersion < 2.0 )
-          error( 'Only mesh formats >= 2.0 are supported.' );
+        % We only support version 2.x.
+        if( meshVersion < 2.0  | meshVersion >= 3.0 )
+          error( 'Only mesh formats 2.x are supported.' );
         end % if
             
         % We only support ASCII type.

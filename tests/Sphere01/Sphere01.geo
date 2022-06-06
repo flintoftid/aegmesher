@@ -2,6 +2,8 @@
 // gmsh geometry for a sphere.
 // 
 
+Mesh.MshFileVersion = 2.0;
+
 radius = 100;     // Sphere radius.
 height = 0;       // Sphere height.
 meshSize_NP = 5;  // Mesh size at north pole.

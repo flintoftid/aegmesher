@@ -10,6 +10,9 @@
 // high:  Front  Right Up
 //
 
+// AEG MEsher only support Gmsh version 2.x meshes.
+Mesh.MshFileVersion = 2.0;
+
 // Which elements are present?
 isA2 = 1; // Cube of RAM in left back corner of floor.
 isA1 = 1; // Cube of RAM in centre of floor.

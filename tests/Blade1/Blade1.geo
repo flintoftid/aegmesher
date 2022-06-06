@@ -4,6 +4,8 @@
 // Symmetry plane in y-z plane.
 //
 
+Mesh.MshFileVersion = 2.0;
+
 Printf( "*** WARNING - Dimensions require validation against physical antenna! ***" );
 
 // Geometrical parameters.

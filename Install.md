@@ -11,6 +11,7 @@ to use the software. Additional requirements are:
 
 2. (Recommended) The [Gmsh][] unstructured mesh generator is highly recommended for creating and viewing meshes. 
    It also enables importing meshes in many other formats such as [STL](http://en.wikipedia.org/wiki/STL_%28file_format%29).
+   Note that AEG Mesher currently only support Gmsh version 2.x meshes.
 
 3. (Optional) The [nlopt][] package provides enhanced optimisation capability.
 

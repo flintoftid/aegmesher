@@ -1,3 +1,5 @@
+Mesh.MshFileVersion = 2.0;
+
 cl__1 = 0.1;
 Point(25) = {1, 0, 4.5, 0.1};
 Point(26) = {1, 1, 4.5, 0.1};
